@@ -1,0 +1,6 @@
+COMPILING ERROR
+- Server and Sim classes cannot compile as UNIX/linux system does not allow port usage <1024 
+- This program requires ports 23/69 to be used
+
+EXIT STRATEGY
+- use user input (similar to linux man command "q)
