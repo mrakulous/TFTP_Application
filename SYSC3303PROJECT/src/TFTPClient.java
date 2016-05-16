@@ -16,7 +16,7 @@ public class TFTPClient {
 	private String filename;
 	private String mode;
 	
-	private DatagramPacket sendPacket, receivePacket, ack;
+	private DatagramPacket sendPacket, receivePacket;
 	private DatagramSocket sendReceiveSocket;
 
    	public TFTPClient()
@@ -129,15 +129,15 @@ public class TFTPClient {
                 		byte[] msg = new byte[TOTAL_SIZE];
                 		byte[] data = new byte[DATA_SIZE];
                 
-		                DatagramPacket received = new DatagramPacket(msg, msg.length);
+		                receivePacket = new DatagramPacket(msg, msg.length);
 		                try{
-		                	sendReceiveSocket.receive(received);
+		                	sendReceiveSocket.receive(receivePacket);
 		                } catch (IOException e){
 		                	e.printStackTrace();
 		                    System.exit(1);
                 		}
                 
-		                System.arraycopy(received.getData(), 4, data, 0, received.getLength()-4);
+		                System.arraycopy(receivePacket.getData(), 4, data, 0, receivePacket.getLength()-4);
                 
 		                for(len = 4; len < data.length; len++) {
 		                    if (data[len] == 0) break;
@@ -151,10 +151,10 @@ public class TFTPClient {
 		                ack[2] = blocknum1;
 		                ack[3] = blocknum2;
 		                
-		                DatagramPacket sending = new DatagramPacket(ack, ack.length,
+		                sendPacket = new DatagramPacket(ack, ack.length,
 								InetAddress.getLocalHost(), 23);
 		                try{
-		                	sendReceiveSocket.send(sending);
+		                	sendReceiveSocket.send(sendPacket);
 		                } catch (IOException e){
 		                	e.printStackTrace();
 		                    System.exit(1);
@@ -186,9 +186,9 @@ public class TFTPClient {
 		                byte[] msg = new byte[TOTAL_SIZE];
 		                byte[] data = new byte[DATA_SIZE];
 		                
-		                DatagramPacket received = new DatagramPacket(msg, msg.length);
+		                receivePacket = new DatagramPacket(msg, msg.length);
 		                try{
-		                	sendReceiveSocket.receive(received);
+		                	sendReceiveSocket.receive(receivePacket);
 		                } catch (IOException e){
 		                	e.printStackTrace();
 		                    System.exit(1);
@@ -207,10 +207,10 @@ public class TFTPClient {
 		                send[2] = blocknum1;
 		                send[3] = blocknum2;
 		                System.arraycopy(data, 0, send, 4, len);
-		                DatagramPacket sending = new DatagramPacket(send, send.length,
+		                sendPacket = new DatagramPacket(send, send.length,
 								InetAddress.getLocalHost(), 23);
 		                try{
-		                	sendReceiveSocket.send(sending);
+		                	sendReceiveSocket.send(sendPacket);
 		                } catch (IOException e){
 		                	e.printStackTrace();
 		                    System.exit(1);
