@@ -35,7 +35,9 @@ public class TFTPServer {
       
       
       receivePacket = new DatagramPacket(data, data.length);
-      System.out.println("Server: Waiting for packet.");
+
+         System.out.println("Server: Waiting for packet.");
+         // Block until a datagram packet is received from receiveSocket.
          try {
             receiveSocket.receive(receivePacket);
          } catch (IOException e) {
