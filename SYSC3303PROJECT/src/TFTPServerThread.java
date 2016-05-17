@@ -4,29 +4,31 @@ import java.util.*;
 
 //import TFTPServer.Request;
 
-public class TFTPServerThread implements Runnable{
+public class TFTPServerThread implements Runnable
+{
 	public static enum Request { READ, WRITE, ERROR};
 	public static final int DATA_SIZE = 512;
 	public static final int TOTAL_SIZE = DATA_SIZE +4;  
 	private DatagramPacket receivedPacket, sendPacket;
-	private DatagramSocket receiveSocket, sendSocket;
+	private DatagramSocket Socket;
 	private String filename;
 	private String mode;
 	private Request req;
 	
-	public TFTPServerThread(DatagramPacket received){
+	public TFTPServerThread(DatagramPacket received)
+	{
 		this.receivedPacket = received;
 		
 		try {
-			receiveSocket = new DatagramSocket();
-			sendSocket = new DatagramSocket();
+			Socket = new DatagramSocket();
 		} catch (SocketException se) {   // Can't create the socket.
 			se.printStackTrace();
 			System.exit(1);
 		}
 	}
 	   
-	public void identifyReq(){
+	public void identifyReq()
+	{
 		byte[] data = receivedPacket.getData();
 		int len = receivedPacket.getLength();
 		int filecount=0;
@@ -70,61 +72,60 @@ public class TFTPServerThread implements Runnable{
 
 	/**
 	 * Retrieve text file from directory, put it into packet and send to client
+	 * @throws SocketException 
 	 */
 	 public void read() {
 		 
 		byte blocknum1=0;
-   		byte blocknum2=1;
-   		int len;
+		byte blocknum2=1;
+		int len;
    		
-   		try{
-   			System.out.print(filename);
-   			BufferedInputStream in = new BufferedInputStream(new FileInputStream(filename));
-   			do{
-		                byte[] msg = new byte[TOTAL_SIZE];
-		                byte[] data = new byte[DATA_SIZE];
-		                len = in.read(data);
+		try {
+			System.out.print(filename);
+			BufferedInputStream in = new BufferedInputStream(new FileInputStream(filename));
+			do {
+				byte[] msg = new byte[TOTAL_SIZE];
+				byte[] data = new byte[DATA_SIZE];
+				len = in.read(data);
 		                
-		                msg[0] = 0;
-		                msg[1] = 3;
-		                msg[2] = blocknum1;
-		                msg[3] = blocknum2;
+				msg[0] = 0;
+				msg[1] = 3;
+				msg[2] = blocknum1;
+				msg[3] = blocknum2;
 		                
-		                int i = 0; 
-		                for(;;){
-		                	System.arraycopy(data, i, msg, i+4, len);
-		                	if(data[i]==0){
-		                		break;
-		                	} else {
-		                		i++;
-		                	}
-		                }
-		                data[i] = 0;
-		                i++;
-		                
-		                sendPacket = new DatagramPacket(msg, i+4, receivedPacket.getAddress(), receivedPacket.getPort());
-		                try{
-		                	receiveSocket.send(sendPacket);
-		                } catch (IOException e){
-		                	e.printStackTrace();
-		                    System.exit(1);
-		                }
-		                
-		                if(blocknum2 == 255){
-		                	blocknum1++;
-		                }
-		                blocknum2++;  
-		                
+				int i = 0; 
+				for(;;) {
+					System.arraycopy(data, i, msg, i+4, len);
+					if(data[i]==0) {
+						break;
+					} else {
+						i++;
+					}
+				}
+				data[i] = 0;
+				i++;
+				
+				sendPacket = new DatagramPacket(msg, i+4, receivedPacket.getAddress(), receivedPacket.getPort());
+				try {
+					Socket.send(sendPacket);
+				} catch (IOException e){
+					e.printStackTrace();
+					System.exit(1);
+				}
+				
+				if(blocknum2 == 255){
+					blocknum1++;
+				}
+				blocknum2++;  
 			} while (len>=DATA_SIZE);
-   			in.close();
-   			
-   		} catch (FileNotFoundException e){
-   			e.printStackTrace();
-   			System.exit(1);
-   		} catch (IOException e){
-   			e.printStackTrace();
-   			System.exit(1);
-   		}
+				in.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			System.exit(1);
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
 	}
 
         /*
@@ -133,71 +134,74 @@ public class TFTPServerThread implements Runnable{
 	public void write() {
 		
 		byte blocknum1=0;
-   		byte blocknum2=1;
+		byte blocknum2=0;
    		
-   		try{
-   			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(filename));
-   			System.out.print(filename);
-   			//for(;;){
-   				int len;
-		                byte[] msg = new byte[TOTAL_SIZE];
-		                byte[] data = new byte[DATA_SIZE];
-		                byte[] ack = new byte[4];
-		                
-		                ack[0] = 0;
-		                ack[1] = 4;
-		                ack[2] = blocknum1;
-		                ack[3] = blocknum2;
-		                
-		                sendPacket = new DatagramPacket(ack, ack.length,
-		                		receivedPacket.getAddress(), receivedPacket.getPort());
-		                try{
-		                	sendSocket.send(sendPacket);
-		                } catch (IOException e){
-		                	e.printStackTrace();
-		                    System.exit(1);
-		                }
-		                
-		                if(blocknum2 == 255){
-		                	blocknum1++;
-		                }
-		                blocknum2++;
-		                
-		                receivedPacket = new DatagramPacket(msg, msg.length);
-		                try{
-		                	receiveSocket.receive(receivedPacket);
-		                } catch (IOException e){
-		                	e.printStackTrace();
-		                    System.exit(1);
-		                }
-		                
-		                System.arraycopy(receivedPacket.getData(), 4, data, 0, receivedPacket.getLength()-4);
-		                
-		                for(len = 4; len < data.length; len++) {
-		                    if (data[len] == 0) break;
-		                }
-		                
-		                System.out.print("test1");
-		                
-		                out.write(data,0,len); 
-		                System.out.print("test2");
-		                
-		                if(len+1<=TOTAL_SIZE) {
-		                    out.close();
-		                    //break;
-		                }
-			//}
+		try {
+			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(filename));
+			System.out.print(filename);
    			
-   		} catch(FileNotFoundException e){
-   			e.printStackTrace();
-            System.exit(1);
-   		} catch(IOException e){
-   			e.printStackTrace();
-            System.exit(1);
-   		}
+			for(;;) {
+				int len;
+				byte[] msg = new byte[TOTAL_SIZE];
+				byte[] data = new byte[DATA_SIZE];
+				byte[] ack = new byte[4];
+                
+				ack[0] = 0;
+				ack[1] = 4;
+				ack[2] = blocknum1;
+				ack[3] = blocknum2;
+                
+				sendPacket = new DatagramPacket(ack, ack.length, receivedPacket.getAddress(), receivedPacket.getPort());
+				try {
+					Socket.send(sendPacket);
+				} catch (IOException e){
+					e.printStackTrace();
+					System.exit(1);
+				}
+                
+				if(blocknum2 == 255) {
+					blocknum1++;
+				}
+				
+				blocknum2++;
+				receivedPacket = new DatagramPacket(msg, msg.length);
+                		
+				try {
+					test(receivedPacket.toString());
+					Socket.receive(receivedPacket);
+					test(receivedPacket.toString());
+				} catch (IOException e) {
+					e.printStackTrace();
+					System.exit(1);
+				}
+                
+				System.arraycopy(receivedPacket.getData(), 4, data, 0, receivedPacket.getLength()-4);
+                
+				for(len = 4; len < data.length; len++) {
+					if (data[len] == 0) break;
+				}
+                
+				out.write(data,0,len); 
+               
+				if(len+1<=TOTAL_SIZE) {
+					out.close();
+					break;
+				}
+			}
+		} catch(FileNotFoundException e){
+			e.printStackTrace();
+			System.exit(1);
+		} catch(IOException e){
+			e.printStackTrace();
+			System.exit(1);
+		}
 	}
 
 	public void run(){
 		identifyReq();
+	}
+	
+	private void test(String n) {
+		System.out.println(n);
 	}
 }
