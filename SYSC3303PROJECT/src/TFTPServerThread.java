@@ -14,6 +14,8 @@ public class TFTPServerThread implements Runnable
 	private String filename;
 	private String mode;
 	private Request req;
+	private byte correctBlock1 = 0;
+	private byte correctBlock2 = 0;
 	
 	public TFTPServerThread(DatagramPacket received)
 	{
@@ -74,16 +76,26 @@ public class TFTPServerThread implements Runnable
 	 * Retrieve text file from directory, put it into packet and send to client
 	 * @throws SocketException 
 	 */
-	 public void read() {
+	public void read() {
 		 
-		byte blocknum1=0;
-		byte blocknum2=1;
+		byte blocknum1 = 0;
+		byte blocknum2 = 1;
 		int len;
+		int counter = 0;
    		
 		try {
-			System.out.print(filename);
 			BufferedInputStream in = new BufferedInputStream(new FileInputStream(filename));
 			do {
+				for(;;) {
+					
+					Socket.receive(receivedPacket);
+					
+					if(correctBlock1 == receivedPacket.getData()[2] && correctBlock2 == receivedPacket.getData()[3]) {
+						// Ex, sent DATA 1 and received ACK 1, correct, so break out of forever loop.
+						break;
+					}
+				}
+				
 				byte[] msg = new byte[TOTAL_SIZE];
 				byte[] data = new byte[DATA_SIZE];
 				len = in.read(data);
@@ -105,12 +117,23 @@ public class TFTPServerThread implements Runnable
 				data[i] = 0;
 				i++;
 				
-				sendPacket = new DatagramPacket(msg, i+4, receivedPacket.getAddress(), receivedPacket.getPort());
-				try {
-					Socket.send(sendPacket);
-				} catch (IOException e){
-					e.printStackTrace();
-					System.exit(1);
+				while (counter < 2) {
+					sendPacket = new DatagramPacket(msg, i+4, receivedPacket.getAddress(), receivedPacket.getPort());
+					try {
+						Socket.setSoTimeout(500);
+						Socket.send(sendPacket);
+					} catch (IOException e){
+						e.printStackTrace();
+						retransmit(sendPacket);
+						if(counter < 1) {
+							// First time, so retransmit
+							counter++;
+						}
+						else {
+							System.out.println("Still no ACK received. Timing out.");
+							System.exit(1);
+						}
+					}
 				}
 				
 				if(blocknum2 == 255){
@@ -127,7 +150,12 @@ public class TFTPServerThread implements Runnable
 			System.exit(1);
 		}
 	}
-
+	 
+	 public void retransmit(DatagramPacket thePacket) throws IOException {
+		 Socket.send(thePacket);
+		 System.out.println("Packet retransmitted.");
+	 }
+	 
         /*
 	* Write the received datagram packet to an output file.
 	*/
@@ -158,18 +186,37 @@ public class TFTPServerThread implements Runnable
 					e.printStackTrace();
 					System.exit(1);
 				}
-                
-				if(blocknum2 == 255) {
-					blocknum1++;
+				
+				if(correctBlock2 == 255) {
+					// We have 0 255
+					correctBlock1++;
+					// We have 1 255
 				}
 				
-				blocknum2++;
+				correctBlock2++;
+				// If it was 1 255, it is now 1 0
+				
 				receivedPacket = new DatagramPacket(msg, msg.length);
-                		
+
 				try {
-					test(receivedPacket.toString());
-					Socket.receive(receivedPacket);
-					test(receivedPacket.toString());
+					int block1 = correctBlock1;
+					int block2 = correctBlock2;
+					
+					for(;;) {
+						Socket.setSoTimeout(1000);
+						Socket.receive(receivedPacket);
+						if(block2 == 255) {
+							// We have 0 255
+							if(block1+1 == receivedPacket.getData()[2] && block2+1 == receivedPacket.getData()[3]) {
+								// We have 1 0, which is correct, so break out of forever loop
+								break;
+							}
+						}
+						if(block1 == receivedPacket.getData()[2] && block2+1 == receivedPacket.getData()[3]) {
+							// Ex, had 0 1, it is now 0 2, correct, so break out of forever loop
+							break;
+						}
+					}
 				} catch (IOException e) {
 					e.printStackTrace();
 					System.exit(1);
