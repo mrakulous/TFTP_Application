@@ -18,7 +18,7 @@ public class TFTPClient {
 	public Request req;
 	private String pathName;
 	private String mode;
-	private String workingDir;
+	private String workingDir, fileName;
 	private byte ackCntL=0;
 	private byte ackCntR=0;//starting byte
 
@@ -70,9 +70,9 @@ public class TFTPClient {
 					} else if (req==Request.WRITE) {
 						System.out.print("Enter file to write (enter 'q' to quit) : ");
 					}
-						String fileName = re.nextLine();
+						fileName = re.nextLine();
 						if(fileName.length()==EXIT_CMD.length() && fileName.toLowerCase().equals(EXIT_CMD)){
-							System.out.println("PeAcE");
+							System.out.println("Have a nice day.");
 							System.exit(1);
 						}
 						pathName = workingDir + fileName;//add file name to file path
@@ -113,7 +113,7 @@ public class TFTPClient {
 			}
 			int index = 2;
 			
-			byte[] fn = pathName.getBytes();
+			byte[] fn = fileName.getBytes();
 			System.arraycopy(fn,0,msg,index,fn.length);
 			index = index + fn.length;
 			msg[index] = 0;
