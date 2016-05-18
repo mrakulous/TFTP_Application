@@ -1,4 +1,3 @@
-//TFTPSim.java
 //This class is the beginnings of an error simulator for a simple TFTP server 
 //based on UDP/IP. The simulator receives a read or write packet from a client and
 //passes it on to the server.  Upon receiving a response, it passes it on to the 
@@ -8,13 +7,11 @@
 
 import java.io.*;
 import java.net.*;
-//import java.util.*;
 
 public class SimThread implements Runnable{
-
-// UDP datagram packets and sockets used to send / receive
+	// UDP datagram packets and sockets used to send / receive
 	public static final int DATA_SIZE = 512;
-	public static final int TOTAL_SIZE = DATA_SIZE +4;  
+	public static final int TOTAL_SIZE = DATA_SIZE + 4;  
 	
 	private DatagramPacket sendPacket, receivedPacket;
 	private DatagramSocket receiveSocket, sendSocket, sendReceiveSocket;
@@ -22,13 +19,14 @@ public class SimThread implements Runnable{
 	public SimThread(DatagramPacket received)
 	{
 		this.receivedPacket = received;
-	   try {
-	      receiveSocket = new DatagramSocket();
-	      sendReceiveSocket = new DatagramSocket();
-	   } catch (SocketException se) {
-	      se.printStackTrace();
-	      System.exit(1);
-	   }
+		
+		try {
+			receiveSocket = new DatagramSocket();
+			sendReceiveSocket = new DatagramSocket();
+		} catch (SocketException se) {
+			se.printStackTrace();
+			System.exit(1);
+		}
 	}
 	
 	public void passOnTFTP()
@@ -39,9 +37,11 @@ public class SimThread implements Runnable{
 	   for(;;) {
 	      data = new byte[516];
 	      receivedPacket = new DatagramPacket(data, data.length);
-	
+
 	      System.out.println("Simulator: Waiting for packet from client............");
 	      System.out.println();
+	      
+	      // Wait for packet from client
 	      
 	      try {
 	         receiveSocket.receive(receivedPacket);
@@ -49,7 +49,9 @@ public class SimThread implements Runnable{
 	         e.printStackTrace();
 	         System.exit(1);
 	      }
-	
+	      
+	      // Packet received from client
+	      
 	      System.out.println("Simulator: Packet received from client.");
 	      System.out.println("From host: " + receivedPacket.getAddress());
 	      clientPort = receivedPacket.getPort();
@@ -60,8 +62,7 @@ public class SimThread implements Runnable{
 	      System.out.println("Contents: " + contents);
 	      System.out.println();
 	
-	      sendPacket = new DatagramPacket(data, len,
-	                                     receivedPacket.getAddress(), 69);
+	      sendPacket = new DatagramPacket(data, len, receivedPacket.getAddress(), 69);
 	     
 	      System.out.println("Simulator: Sending packet to server.");
 	      System.out.println("To host: " + sendPacket.getAddress());
@@ -71,6 +72,8 @@ public class SimThread implements Runnable{
 	      contents = new String(data,0,len);
 	      System.out.println("Contents: " + contents);
 	      System.out.println();
+	      
+	      // Send packet to server
 	
 	      try {
 	         sendReceiveSocket.send(sendPacket);
@@ -85,12 +88,16 @@ public class SimThread implements Runnable{
 	      System.out.println("Simulator: Waiting for packet from server............");
 	      System.out.println();
 	      
+	      // Wait for packet from server
+	      
 	      try {
 	         sendReceiveSocket.receive(receivedPacket);
 	      } catch(IOException e) {
 	         e.printStackTrace();
 	         System.exit(1);
 	      }
+	      
+	      // Packet received from server
 	
 	      System.out.println("Simulator: Packet received from server.");
 	      System.out.println("From host: " + receivedPacket.getAddress());
@@ -119,6 +126,8 @@ public class SimThread implements Runnable{
 	         se.printStackTrace();
 	         System.exit(1);
 	      }
+	      
+	      // Send packet to client
 	
 	      try {
 	         sendSocket.send(sendPacket);
