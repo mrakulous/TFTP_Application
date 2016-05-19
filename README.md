@@ -1,4 +1,4 @@
-# ALL THE FILES IN SRC FOLDER ARE UP TO DATE AS OF 8:27PM MAY 16.
+# 
 
 Group 8
 Iteration 1
