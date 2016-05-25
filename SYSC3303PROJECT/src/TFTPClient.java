@@ -32,7 +32,8 @@ public class TFTPClient {
    	{
    		try {
 			sendReceiveSocket = new DatagramSocket();
-			workingDir = System.getProperty("user.dir") + "\\clientSide\\";//get working directory
+			workingDir = System.getProperty("user.dir") + "/clientSide/";//get working directory
+			test(workingDir);
 		} catch (SocketException se) {
 			se.printStackTrace();
 			System.exit(1);
