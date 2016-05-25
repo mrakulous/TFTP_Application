@@ -1,4 +1,3 @@
-
 //This class represents the Error Simulator.
 import java.io.*;
 import java.net.*;
@@ -13,19 +12,13 @@ public class Sim {
    private int packetType;
    private byte blockNum;
    private int[] data;
-
    private byte[] dataSer;
-   public static final int MAC_SOCKET = 2300;
-   
    
    public Sim()
    {
       try {
-    	  receiveSocket = new DatagramSocket(MAC_SOCKET);//For Unix users
-    	  //receiveSocket = new DatagramSocket(23);
-    	 
+    	  receiveSocket = new DatagramSocket(23);
     	  sendReceiveSocket = new DatagramSocket();
-    	  
       } catch (SocketException se) {
          se.printStackTrace();
          System.exit(1);
@@ -106,8 +99,9 @@ public class Sim {
          System.out.println("Host port: " + clientPort);
          len = receivePacket.getLength();
          System.out.println("Length: " + len);
+         System.out.println("Contents(bytes): " + data);
          String contents = new String(data,0,len);
-         System.out.println("Contents: " + contents + "\n");
+         System.out.println("Contents(string): " + contents + "\n");
          
          //if RRQ or WRQ, server Port = 69, else 0
          int servPort = 69;
@@ -127,8 +121,9 @@ public class Sim {
          System.out.println("Destination host port: " + sendPacket.getPort());
          len = sendPacket.getLength();
          System.out.println("Length: " + len);
+         System.out.println("Contents(bytes): " + data);
          contents = new String(data,0,len);
-         System.out.println("Contents: " + contents + "\n");
+         System.out.println("Contents(string): " + contents + "\n");
          
          //send packet
          try {
@@ -156,8 +151,9 @@ public class Sim {
          System.out.println("Host port: " + serverPort);
          len = receivePacket.getLength();
          System.out.println("Length: " + len);
+         System.out.println("Contents(bytes): " + dataSer);
          contents = new String(dataSer,0,len);
-         System.out.println("Contents: " + contents + "\n");
+         System.out.println("Contents(string): " + contents + "\n");
          
          
          //prep received data from server to send to client
@@ -170,8 +166,9 @@ public class Sim {
          System.out.println("Destination host port: " + sendPacket.getPort());
          len = sendPacket.getLength();
          System.out.println("Length: " + len);
+         System.out.println("Contents(bytes): " + dataSer);
          contents = new String(dataSer,0,len);
-         System.out.println("Contents: " + contents + "\n");
+         System.out.println("Contents(string): " + contents + "\n");
          
          //prep socket to send packet to client
          try {
@@ -270,29 +267,22 @@ public class Sim {
        DatagramPacket  losePacket;
        if (packetType ==1){
     	   if (data [1]== 3) { 
-    		   	if (data [3]==  blockNum ){
+    		   	if (data [3]==  blockNum ){ 
+    		   		// sendReceiveSocket.setSoTimeout();
+    		   		losePacket =  new DatagramPacket (temp.getData(), data.length, addr, temp.getPort());
+		    	    try {
+		    	    	sendReceiveSocket.send(losePacket);
+		    	    } catch (IOException e) {
+		    	    	e.printStackTrace();
+		    	    	System.exit(1);
+		    	    }
 		    	    	 
-		    	          // sendReceiveSocket.setSoTimeout();
-    		   		losePacket =  new DatagramPacket (temp.getData(),
-    		   				data.length, addr, temp.getPort());
-		    	  
-		    	       try {
-		    	             sendReceiveSocket.send(losePacket);
-		    	          } catch (IOException e) {
-		    	             e.printStackTrace();
-		    	             System.exit(1);
-		    	          }
-		    	    	 
-		    	     }
-		    		  
-		    	  }else if (dataSer [1]== 3){
-		    		  if (dataSer [3]==  blockNum ){
-		    			  
-		    			 // sendSocket .setSoTimeout(time);
-		    		 losePacket =  new DatagramPacket (temp2.getData(),
-			   	    			  dataSer.length, addr, temp2.getPort());
-			    	       
-			    	       try {
+		    	    }
+    		} else if (dataSer [1]== 3){
+    			if (dataSer [3]==  blockNum ){
+    			// sendSocket .setSoTimeout(time);
+    			losePacket =  new DatagramPacket (temp2.getData(), dataSer.length, addr, temp2.getPort());
+    			try {
 			    	    	   sendSocket .send( losePacket);
 			    	          } catch (IOException e) {
 			    	             e.printStackTrace();
@@ -301,10 +291,8 @@ public class Sim {
 			    	    	 
 			    	     }
 		    	  }
-    	   
 	        } else if(packetType == 2) {
-			  
-	        	 if (data [1]== 4) { 
+	        	 if (data [1]== 4) {
 		    	     if (data [3]==  blockNum ){
 		    	    	 
 		    	          // sendReceiveSocket.setSoTimeout(time);
@@ -318,8 +306,7 @@ public class Sim {
 		    	          }
 		    	    	 
 		    	     }
-		    		  
-		    	  }else if (dataSer [1]== 4){
+		    	  } else if (dataSer [1]== 4){
 		    		  if (dataSer [3]==  blockNum ){
 		    			  losePacket =  new DatagramPacket (temp2.getData(),
 			   	    			  dataSer.length, addr, temp2.getPort()); 
@@ -334,9 +321,6 @@ public class Sim {
 			    	    	 
 			    	     }
 		    	  }
-		    	     
-	        	 
-			
 		    } else if (packetType == 3) {  
 			  //rrq 
 		    	if (data [1]== 1) { 
@@ -351,11 +335,7 @@ public class Sim {
 		    	             e.printStackTrace();
 		    	             System.exit(1);
 		    	          }
-		    	    	 
-		    	}  
-		    	
-		   
-		
+		    	}
 	       } else if (packetType == 4) {
 	   	     // wrq 
 	    	   if (data [1]== 2) { 
@@ -607,4 +587,3 @@ public class Sim {
 	   }//end for
 	}
 }
-

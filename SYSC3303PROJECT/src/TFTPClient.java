@@ -3,18 +3,13 @@
 // UDP/IP. The client uses one port and sends a read or write request and gets 
 // the appropriate response from the server.  No actual file transfer takes place.   
 
-// Test, git and eclipse.
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
 public class TFTPClient {
-	private static final int DATA_SIZE = 512;
-	private static final int TOTAL_SIZE = DATA_SIZE +4;
-	private static final int TIMEOUT = 1000;
-	private static final int RETRANSMIT_TIME = 500;
-	private static final String EXIT_CMD = "q";
+	public static final int DATA_SIZE = 512;
+	public static final int TOTAL_SIZE = DATA_SIZE+4;
 	public static enum Request { READ, WRITE, ERROR};
 	public static enum Mode { NORMAL, TEST};
 	public Request req;
@@ -23,23 +18,29 @@ public class TFTPClient {
 	private String workingDir, fileName;
 	private byte ackCntL=0;
 	private byte ackCntR=0;//starting byte
-
+	private int port; // port that it interacts with
 	
 	private DatagramPacket sendPacket, receivePacket;
 	private DatagramSocket sendReceiveSocket;
+	private String contents;
+	
+	private static final String EXIT_CMD = "q";
+	private static final int TIMEOUT = 1000;
+	private static final int RETRANSMIT_TIME = 500;
 
-   	public TFTPClient()
+	public TFTPClient()
    	{
+   		port = 0;
    		try {
 			sendReceiveSocket = new DatagramSocket();
 			workingDir = System.getProperty("user.dir") + "/clientSide/";//get working directory
-			test(workingDir);
+			System.out.println(workingDir);
 		} catch (SocketException se) {
 			se.printStackTrace();
 			System.exit(1);
 		}
 	}
-
+	
    	public void run()
    	{
 		Scanner re = new Scanner(System.in);
@@ -104,7 +105,6 @@ public class TFTPClient {
 					System.out.println("Please enter a valid option");
 				}
 			}
-			mode = "octet";
 			byte[] msg = new byte[TOTAL_SIZE];
 			
 			msg[0] = 0;
@@ -135,6 +135,29 @@ public class TFTPClient {
 				System.exit(1);
 			}
 			
+			System.out.println("\nClient: Sending packet to simulator.");
+	        System.out.println("To host: " + sendPacket.getAddress());
+	        System.out.println("Destination host port: " + sendPacket.getPort());
+	        int packetLength = sendPacket.getLength();
+	        System.out.println("Length: " + packetLength);
+	        System.out.println("Contents(bytes): " + msg);
+	        String contents = new String(msg,0,packetLength);
+	        System.out.println("Contents(string): " + contents + "\n");
+			
+	        try {
+	             Thread.sleep(500);
+	        } catch (InterruptedException e) {
+	        	 e.printStackTrace();
+	        }
+	        
+	        System.out.println("Client: Waiting for packet from simulator............" + "\n");
+	        
+	        try {
+	             Thread.sleep(500);
+	         } catch (InterruptedException e) {
+	        	 e.printStackTrace();
+	         }
+			
 			try{
             	sendPackets(sendPacket);
             } catch (IOException e) {
@@ -155,57 +178,87 @@ public class TFTPClient {
    		sendReceiveSocket.send(sendPacket);
 	}
 
-	public void read()
+   	public void read()
    	{
 		try {
-			//Put file into clientSide folder with same name as server
-			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(pathName));
+			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("read.txt"));
 			for(;;) {
 				int len;
 				byte[] msg = new byte[TOTAL_SIZE];
 				byte[] data = new byte[DATA_SIZE];
-				
-				//create receive Datagram Packet
+
 				receivePacket = new DatagramPacket(msg, msg.length);
-				
+
 				try {
-					
-					/*
-					 * Network Error Handling 
-					 * 
-					 * ACK retransmission is not needed as duplicate ack packets are disabled
-					 * 
-					 * Only have check for initial timeout
-					 */
-					
-								
 					for(;;) {
-										
+						
+						// if it the first time around and the port wasnt set yet
+						if(this.port == 0){
+							this.port = receivePacket.getPort();
+						}
+						
+						if(this.port != receivePacket.getPort()){
+							// create a error datagram with error 5
+							byte[] err5 = new byte[TOTAL_SIZE];
+							err5[0] = 0;
+							err5[1] = 5;
+							err5[2] = 0;
+							err5[3] = 5;
+							// the port is not the same
+							String error = "Unknown Port";
+							System.out.println("Error 5: unknown port");
+							System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
+							err5[error.getBytes().length+4] = 0;
+							// create the datagram Packet
+							DatagramPacket errorPacket5 = new DatagramPacket(err5, err5.length, receivePacket.getAddress(), receivePacket.getPort());
+							// send the pakcet and wait for the new packet
+							sendReceiveSocket.send(errorPacket5);
+							sendReceiveSocket.receive(receivePacket);
+						}
+						System.out.println("Ack received");
+						while(receivePacket.getData()[1] == 5){
+							if(receivePacket.getData()[3] == 4){
+								System.exit(1);
+							} else {
+								sendReceiveSocket.send(sendPacket);
+							}
+						}
+												
 						//set timeout time
 						
 
 						//****ERROR HANDLING: DATA LOSS****
-						sendReceiveSocket.setSoTimeout(TIMEOUT);
+						//sendReceiveSocket.setSoTimeout(TIMEOUT);
 						
 						//block socket, wait for packet
-						sendReceiveSocket.receive(receivePacket);
+						//sendReceiveSocket.receive(receivePacket);
 
 							
 						//****ERROR HANDLING: DUPLICATE DATA****
 						
 						//if incoming block number != ack counter + 1, keep waiting, 
 						//check for duplicate
-						byte byteCheck1 = (byte) (ackCntR+1);
+						byte byteCheck1 = (byte) (ackCntR);
+						byte byteCheck2 = (byte) (ackCntL);
 						//case where right ack byte counter is at max
 						if(ackCntR==255) {
-							byte leftCount = (byte) (ackCntL+1);
-							if(receivePacket.getData()[2]==leftCount && receivePacket.getData()[3]==byteCheck1) {
-								break;
-							}
-						}else if(receivePacket.getData()[2]==ackCntL && receivePacket.getData()[3]==byteCheck1) {
-							break;
-						} else {
-							System.out.println("Error cannot be handled this iteration");
+							byteCheck2++;
+						} 
+						byteCheck1++;
+						if(receivePacket.getData()[0] != 0 || receivePacket.getData()[1] != 3 ||
+								receivePacket.getData()[2] != byteCheck2 || receivePacket.getData()[3] != byteCheck1){
+							byte[] err4 = new byte[TOTAL_SIZE];
+							err4[0] = 0;
+							err4[1] = 5;
+							err4[2] = 0;
+							err4[3] = 4;
+							String error = "Format Mistake";
+							System.arraycopy(error.getBytes(), 0, err4, 4, error.getBytes().length);
+							err4[error.getBytes().length+4] = 0;
+							// create the datagram Packet
+							DatagramPacket errorPacket4 = new DatagramPacket(err4, err4.length, receivePacket.getAddress(), receivePacket.getPort());
+							// send the pakcet and wait for the new packet
+							sendReceiveSocket.send(errorPacket4);
 							System.exit(1);
 						}
 					}
@@ -214,40 +267,99 @@ public class TFTPClient {
 					System.out.println("Shutting down.");
 					System.exit(1);
 				}
-						
-
 				
-				//get data from receivePacket using offset, copy to byte array
+				try {
+		             Thread.sleep(500);
+		        } catch (InterruptedException e) {
+		        	 e.printStackTrace();
+		        }
+				
+				System.out.println("Client: Packet received from simulator.");
+		        System.out.println("From host: " + receivePacket.getAddress());
+		        System.out.println("Host port: " + receivePacket.getPort());
+		        len = receivePacket.getLength();
+		        System.out.println("Length: " + len);
+		        System.out.println("Contents(bytes): " + msg);
+		        String contents = new String(msg,0,len);
+		        System.out.println("Contents(string): \n" + contents + "\n");
+                
+		        try {
+		             Thread.sleep(500);
+		        } catch (InterruptedException e) {
+		        	 e.printStackTrace();
+		        }
+		        
 				System.arraycopy(receivePacket.getData(), 4, data, 0, receivePacket.getLength()-4);
-				
-				//check if this packet is last packet (<512 bytes) is so, break
+
 				for(len = 4; len < data.length; len++) {
 					if (data[len] == 0) break;
 				}
 
-				//write byte array to file
 				out.write(data,0,len);
-				System.out.println("Sending ack");
 
-				//create ack packet
 				byte[] ack = new byte[4];
 				ack[0] = 0;
 				ack[1] = 4;
 				ack[2] = ackCntL;
 				ack[3] = ackCntR;
-				//check for duplicate data
 
 				sendPacket = new DatagramPacket(ack, ack.length, InetAddress.getLocalHost(), 23);
-
+				
+				System.out.println("Client: Sending packet to simulator.");
+		        System.out.println("To host: " + sendPacket.getAddress());
+		        System.out.println("Destination host port: " + sendPacket.getPort());
+		        len = sendPacket.getLength();
+		        System.out.println("Length: " + len);
+		        System.out.println("Contents(bytes): " + ack);
+		        contents = new String(ack, 0, len);
+		        System.out.println("Contents(string): " + contents + "\n");
+		        
+		        try {
+		             Thread.sleep(500);
+		        } catch (InterruptedException e) {
+		        	 e.printStackTrace();
+		        }
+		        
+		        System.out.println("Client: Waiting for packet from simulator............" + "\n");
+		        
+		        try {
+		             Thread.sleep(500);
+		        } catch (InterruptedException e) {
+		        	 e.printStackTrace();
+		        }
+		        
 				try {
 					sendReceiveSocket.send(sendPacket);
 				} catch (IOException e) {
 					e.printStackTrace();
 					System.exit(1);
 				}
-		                 
-				if(len+1<=TOTAL_SIZE) {
+
+				try {
+					sendReceiveSocket.receive(receivePacket);
+				} catch (IOException e) {
+					e.printStackTrace();
+					System.exit(1);
+				}
+				
+				System.out.println("Client: Packet received from simulator.");
+		        System.out.println("From host: " + receivePacket.getAddress());
+		        System.out.println("Host port: " + receivePacket.getPort());
+		        len = receivePacket.getLength();
+		        System.out.println("Length: " + len);
+		        System.out.println("Contents(bytes): " + msg);
+		        contents = new String(msg,0,len);
+		        System.out.println("Contents(string): \n" + contents + "\n");
+				
+		        try {
+		             Thread.sleep(500);
+		        } catch (InterruptedException e) {
+		        	 e.printStackTrace();
+		        }
+		        
+				if(len<DATA_SIZE) {
 					out.close();
+					System.out.println("#####  OPERATION COMPLETED.  #####" + "\n");
 					break;
 				}
 
@@ -263,22 +375,22 @@ public class TFTPClient {
 	}
    	
 	public void write() {
+		
 		byte blocknum1=0;
 		byte blocknum2=1;
 		int len;
+		
 		try {
-			//Take file from clientSide folder
-			BufferedInputStream in = new BufferedInputStream(new FileInputStream(pathName));
+			BufferedInputStream in = new BufferedInputStream(new FileInputStream("read.txt"));
 			do {
-				byte[] msg = new byte[TOTAL_SIZE];
-				byte[] data = new byte[DATA_SIZE];
+				byte[] msg = new byte[TOTAL_SIZE]; // msg has size 516
+				byte[] data = new byte[DATA_SIZE]; // data has size 512
 				int i = 0;//DATA DELAY TIMER
-				
-				//receive packet for ack
+
 				receivePacket = new DatagramPacket(msg, msg.length);
 
 				try {
-					
+
 					/*
 					 * Network Error Handling 
 					 * 
@@ -289,7 +401,37 @@ public class TFTPClient {
 					
 								
 					for(;;) {
-										
+						if(this.port == 0){
+							this.port = receivePacket.getPort();
+						}
+						
+						if(this.port != receivePacket.getPort()){
+							// create a error datagram with error 5
+							byte[] err5 = new byte[TOTAL_SIZE];
+							err5[0] = 0;
+							err5[1] = 5;
+							err5[2] = 0;
+							err5[3] = 5;
+							// the port is not the same
+							String error = "Unknown Port";
+							System.out.println("Error 5: unknown port");
+							System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
+							err5[error.getBytes().length+4] = 0;
+							// create the datagram Packet
+							DatagramPacket errorPacket5 = new DatagramPacket(err5, err5.length, receivePacket.getAddress(), receivePacket.getPort());
+							// send the pakcet and wait for the new packet
+							sendReceiveSocket.send(errorPacket5);
+							sendReceiveSocket.receive(receivePacket);
+						}
+						
+						System.out.println("Ack received");
+						while(receivePacket.getData()[1] == 5){
+							if(receivePacket.getData()[3] == 4){
+								System.exit(1);
+							} else {
+								sendReceiveSocket.send(sendPacket);
+							}
+						}				
 						
 						//set packet delay time to .5s
 						while (i<2) {
@@ -316,20 +458,29 @@ public class TFTPClient {
 							
 							//if incoming block number != ack counter + 1, keep waiting, 
 							//check for duplicate
-							byte byteCheck1 = (byte) (ackCntR+1);
-							//case where right ack byte counter is at max
-							if(ackCntR==255) {
-								byte leftCount = (byte) (ackCntL+1);
-								if(receivePacket.getData()[2]==leftCount && receivePacket.getData()[3]==byteCheck1) {
-									break;
-								}
-							}else if(receivePacket.getData()[2]==ackCntL && receivePacket.getData()[3]==byteCheck1) {
-								break;
-							} else {
-								System.out.println("Packet not as expected - error cannot be handled this iteration");
-								System.exit(1);
-							}
-						
+						byte byteCheck1 = (byte) (ackCntR);
+						byte byteCheck2 = (byte) (ackCntL);
+						//case where right ack byte counter is at max
+						if(ackCntR==255) {
+							byteCheck2++;
+						} 
+						byteCheck1++;
+						if(receivePacket.getData()[0] != 0 || receivePacket.getData()[1] != 3 ||
+								receivePacket.getData()[2] != byteCheck2 || receivePacket.getData()[3] != byteCheck1){
+							byte[] err4 = new byte[TOTAL_SIZE];
+							err4[0] = 0;
+							err4[1] = 5;
+							err4[2] = 0;
+							err4[3] = 4;
+							String error = "Format Mistake";
+							System.arraycopy(error.getBytes(), 0, err4, 4, error.getBytes().length);
+							err4[error.getBytes().length+4] = 0;
+							// create the datagram Packet
+							DatagramPacket errorPacket4 = new DatagramPacket(err4, err4.length, receivePacket.getAddress(), receivePacket.getPort());
+							// send the pakcet and wait for the new packet
+							sendReceiveSocket.send(errorPacket4);
+							System.exit(1);
+						}
 					}
 				} catch (IOException e) {
 					System.out.println("No data received: Data lost.");
@@ -337,7 +488,7 @@ public class TFTPClient {
 					System.exit(1);
 				}
 				
-				
+				/*
 				try {
 					//block socket until ack received
 					sendReceiveSocket.receive(receivePacket);
@@ -345,47 +496,83 @@ public class TFTPClient {
 					e.printStackTrace();
 					System.exit(1);
 				}
+				*/
 				
-				//ack counter to account for
+				try {
+		             Thread.sleep(500);
+		        } catch (InterruptedException e) {
+		        	 e.printStackTrace();
+		        }
+				
+				System.out.println("Client: Packet received from simulator.");
+		        System.out.println("From host: " + receivePacket.getAddress());
+		        System.out.println("Host port: " + receivePacket.getPort());
+		        int packetLength = receivePacket.getLength();
+		        System.out.println("Length: " + packetLength);
+		        System.out.println("Contents(bytes): " + msg);
+		        String contents = new String(msg,0,packetLength);
+		        System.out.println("Contents(string): " + contents + "\n");
+				
+		        try {
+		             Thread.sleep(500);
+		        } catch (InterruptedException e) {
+		        	 e.printStackTrace();
+		        }
+		        
 				if(blocknum2 == 255) {
 					blocknum1++;
 				}
 				blocknum2++;
 				
-				//parse file into a byte array[len]
 				len = in.read(data);
-				System.out.println(len);
+				System.out.println("Length of data to be read: " + len + "\n");
 				
-				//include block number with datagram
 				msg[0] = 0;
 				msg[1] = 3;
 				msg[2] = blocknum1;
 				msg[3] = blocknum2;
 
-				//
-				int i1 = 0; 
+				int m = 0; 
 				for(;;) {
-					System.arraycopy(data, i1, msg, i1+4, len-1);
-					if(data[i1]==0) {
+				  //System.arraycopy(src, srcLoc, dest, destLoc, len)
+					System.arraycopy(data, m, msg, m+4, len);
+					if(msg[m]==0) {
 						break;
 					} else {
-						i1++;
+						m++;
 					}
 				}
-				data[i1] = 0;
-				i1++;
+				msg[m] = 0;
+				m++;
+
+				sendPacket = new DatagramPacket(msg, msg.length, InetAddress.getLocalHost(), 23);
 				
-				sendPacket = new DatagramPacket(msg, i1+4, InetAddress.getLocalHost(), 23);
+				System.out.println("Client: Sending packet to simulator.");
+		        System.out.println("To host: " + sendPacket.getAddress());
+		        System.out.println("Destination host port: " + sendPacket.getPort());
+		        packetLength = sendPacket.getLength();
+		        System.out.println("Length: " + packetLength);
+		        System.out.println("Contents(bytes): " + msg);
+		        contents = new String(msg, 0, packetLength);
+		        System.out.println("Contents(string): \n" + contents + "\n");
 				
+		        try {
+		             Thread.sleep(500);
+		        } catch (InterruptedException e) {
+		        	 e.printStackTrace();
+		        }
+		        
 				try {
 					sendReceiveSocket.send(sendPacket);
 				} catch (IOException e){
 					e.printStackTrace();
 					System.exit(1);
-				}
+			}
 		
-		} while (len>=DATA_SIZE);
-			in.close();
+		} while (len>0);
+			if(len<DATA_SIZE) {
+				in.close();
+			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -402,10 +589,4 @@ public class TFTPClient {
 			c.run();
 		}
 	}
-	
-	//tester method for output
-	private void test(String n) {
-		System.out.println(n);
-	}
-	
 }
