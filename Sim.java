@@ -148,7 +148,6 @@ public class Sim {
             e.printStackTrace();
             System.exit(1);
          }
-
          sendSocket.close();
       }
    }
