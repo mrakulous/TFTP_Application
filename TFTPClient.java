@@ -190,6 +190,7 @@ public class TFTPClient {
 		        	 e.printStackTrace();
 		        }
 		        
+		      //System.arraycopy(src, srcLoc, dest, destLoc, len)
 				System.arraycopy(receivePacket.getData(), 4, data, 0, receivePacket.getLength()-4);
 
 				for(len = 4; len < data.length; len++) {
@@ -209,10 +210,10 @@ public class TFTPClient {
 				System.out.println("Client: Sending packet to simulator.");
 		        System.out.println("To host: " + sendPacket.getAddress());
 		        System.out.println("Destination host port: " + sendPacket.getPort());
-		        len = sendPacket.getLength();
-		        System.out.println("Length: " + len);
+		        int packetLength = sendPacket.getLength();
+		        System.out.println("Length: " + packetLength);
 		        System.out.println("Contents(bytes): " + ack);
-		        contents = new String(ack, 0, len);
+		        contents = new String(ack, 0, packetLength);
 		        System.out.println("Contents(string): " + contents + "\n");
 		        
 		        try {
@@ -235,32 +236,21 @@ public class TFTPClient {
 					e.printStackTrace();
 					System.exit(1);
 				}
-
+				
 				try {
-					sendReceiveSocket.receive(receivePacket);
-				} catch (IOException e) {
-					e.printStackTrace();
-					System.exit(1);
-				}
-				
-				System.out.println("Client: Packet received from simulator.");
-		        System.out.println("From host: " + receivePacket.getAddress());
-		        System.out.println("Host port: " + receivePacket.getPort());
-		        len = receivePacket.getLength();
-		        System.out.println("Length: " + len);
-		        System.out.println("Contents(bytes): " + msg);
-		        contents = new String(msg,0,len);
-		        System.out.println("Contents(string): \n" + contents + "\n");
-				
-		        try {
 		             Thread.sleep(500);
 		        } catch (InterruptedException e) {
 		        	 e.printStackTrace();
 		        }
-		        
+
 				if(len<DATA_SIZE) {
 					out.close();
 					System.out.println("#####  OPERATION COMPLETED.  #####" + "\n");
+					try {
+			             Thread.sleep(1000);
+			        } catch (InterruptedException e) {
+			        	 e.printStackTrace();
+			        }
 					break;
 				}
 
@@ -323,26 +313,14 @@ public class TFTPClient {
 				blocknum2++;
 				
 				len = in.read(data);
-				System.out.println("Length of data to be read: " + len + "\n");
 				
 				msg[0] = 0;
 				msg[1] = 3;
 				msg[2] = blocknum1;
 				msg[3] = blocknum2;
 
-				int i = 0; 
-				for(;;) {
-				  //System.arraycopy(src, srcLoc, dest, destLoc, len)
-					System.arraycopy(data, i, msg, i+4, len);
-					if(msg[i]==0) {
-						break;
-					} else {
-						i++;
-					}
-				}
-				msg[i] = 0;
-				i++;
-
+				System.arraycopy(data, 0, msg, 4, len);
+					
 				sendPacket = new DatagramPacket(msg, msg.length, InetAddress.getLocalHost(), 23);
 				
 				System.out.println("Client: Sending packet to simulator.");
@@ -366,8 +344,8 @@ public class TFTPClient {
 					e.printStackTrace();
 					System.exit(1);
 			}
-		
-		} while (len>0);
+				
+		} while (len==DATA_SIZE);
 			if(len<DATA_SIZE) {
 				in.close();
 			}
@@ -383,8 +361,6 @@ public class TFTPClient {
 	public static void main(String args[])
 	{
 		TFTPClient c = new TFTPClient();
-		for(;;) {
-			c.run();
-		}
+		c.run();
 	}
 }

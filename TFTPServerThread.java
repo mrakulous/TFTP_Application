@@ -88,28 +88,16 @@ public class TFTPServerThread implements Runnable
 				byte[] data = new byte[DATA_SIZE];
 				
 				len = in.read(data);
-		        
-				System.out.println(len);
 				
 				msg[0] = 0;
 				msg[1] = 3;
 				msg[2] = blocknum1;
 				msg[3] = blocknum2;
-		        
-				int i = 0;
 				
-				for(;;) {
-					System.arraycopy(data, i, msg, i+4, len);
-					if(msg[i]==0) {
-						break;
-					} else {
-						i++;
-					}
-				}
-				msg[i] = 0;
-				i++;
+			  //System.arraycopy(src, srcLoc, dest, destLoc, len)
+				System.arraycopy(data, 0, msg, 4, len);
 				
-				sendPacket = new DatagramPacket(msg, len, receivedPacket.getAddress(), receivedPacket.getPort());
+				sendPacket = new DatagramPacket(msg, len+4, receivedPacket.getAddress(), receivedPacket.getPort());
 				
 				System.out.println("Server: Sending packet to simulator.");
 		        System.out.println("To host: " + sendPacket.getAddress());
@@ -164,7 +152,7 @@ public class TFTPServerThread implements Runnable
 		        contents = new String(msg,0,packetLength);
 		        System.out.println("Contents(string): \n" + contents + "\n");
 		        
-			} while (len>0);
+			} while (len==DATA_SIZE);
 				if(len<DATA_SIZE) {
 					in.close();
 				}
@@ -287,9 +275,5 @@ public class TFTPServerThread implements Runnable
 
 	public void run(){
 		identifyReq();
-	}
-	
-	private void test(String n) {
-		System.out.println(n);
 	}
 }
