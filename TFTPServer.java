@@ -9,8 +9,6 @@ import java.net.*;
 import java.util.*;
 
 public class TFTPServer {
-
-   
    // UDP datagram packets and sockets used to send / receive
    private DatagramPacket receivePacket;
    private static DatagramSocket receiveSocket;
