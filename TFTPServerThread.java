@@ -14,6 +14,8 @@ public class TFTPServerThread implements Runnable
 	private String filename;
 	private String mode;
 	private Request req;
+	private String errMsg;
+	private int port;
 	
 	public TFTPServerThread(DatagramPacket received)
 	{
@@ -25,6 +27,30 @@ public class TFTPServerThread implements Runnable
 			se.printStackTrace();
 			System.exit(1);
 		}
+	}
+	
+	public void  formErrPacket (String msg){
+		DatagramPacket errorPacket ; 
+		byte [] msgbytes = msg.getBytes(); 
+		int msgLen = msgbytes.length; 
+		msgLen += 5;
+		byte[] error = new byte [msgLen]; 
+		error[0] = 0 ; 
+		error[1] = 5 ; 
+		error[2] = 0 ; 
+		error[3] = 4 ; 
+		System.arraycopy(msgbytes, 0,error , 4,msgLen );
+		error[msgLen-1] = 0 ; 
+	    errorPacket  = new DatagramPacket (error,error.length, receivedPacket.getAddress(),  receivedPacket.getPort());
+	    try{
+			   Socket .send(errorPacket);
+		     } catch (IOException e){
+			   e.printStackTrace();
+			   System.exit(1);
+		     }
+	    // terminate
+	    System.exit(1);
+	    
 	}
 	   
 	public void identifyReq()
@@ -86,6 +112,7 @@ public class TFTPServerThread implements Runnable
 			do {
 				byte[] msg = new byte[TOTAL_SIZE];
 				byte[] data = new byte[DATA_SIZE];
+				int i = 0;
 				
 				len = in.read(data);
 				
@@ -96,6 +123,51 @@ public class TFTPServerThread implements Runnable
 				
 			  //System.arraycopy(src, srcLoc, dest, destLoc, len)
 				System.arraycopy(data, 0, msg, 4, len);
+				
+				if(this.port == 0){
+					this.port =  receivedPacket.getPort();
+				}
+				
+				if(this.port !=  receivedPacket.getPort()){
+					// create a error datagram with error 5
+					byte[] err5 = new byte[TOTAL_SIZE];
+					err5[0] = 0;
+					err5[1] = 5;
+					err5[2] = 0;
+					err5[3] = 5;
+					// the port is not the same
+					String error = "Unknown Port";
+					System.out.println("Error 5: unknown port");
+					System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
+					err5[error.getBytes().length+4] = 0;
+					// create the datagram Packet
+					DatagramPacket errorPacket5 = new DatagramPacket(err5, err5.length,  receivedPacket.getAddress(),  receivedPacket.getPort());
+					// send the pakcet and wait for the new packet
+					 try{
+					   Socket .send(errorPacket5);
+				     } catch (IOException e){
+					e.printStackTrace();
+					System.exit(1);
+				     }
+					//sendReceiveSocket.receive(receivePacket);
+				} else {
+					sendPacket = new DatagramPacket(msg, i+4, receivedPacket.getAddress(), receivedPacket.getPort());
+					try {
+						Socket.send(sendPacket);
+					} catch (IOException e){
+						e.printStackTrace();
+						System.exit(1);
+					}
+				}// end port check 
+				
+				//  re-send the data if it has the wrong port 
+				while(receivedPacket.getData()[1] == 5){
+					if(receivedPacket.getData()[3] == 4){
+						System.exit(1);
+					} else {
+						Socket.send(sendPacket);
+					}
+				}
 				
 				sendPacket = new DatagramPacket(msg, len+4, receivedPacket.getAddress(), receivedPacket.getPort());
 				
@@ -134,6 +206,13 @@ public class TFTPServerThread implements Runnable
 				}
 				blocknum2++;
 			    
+				// check for error 4
+				if(receivedPacket.getData()[0] != 0 || receivedPacket.getData()[1] != 3 ||
+						receivedPacket.getData()[2] != blocknum1  || receivedPacket.getData()[3] !=blocknum2) {
+					String error4 = "Format Mistake";
+					formErrPacket(error4);
+				}
+				
 			    receivedPacket = new DatagramPacket(msg, msg.length);
         		
 				try {
@@ -188,36 +267,66 @@ public class TFTPServerThread implements Runnable
 				ack[2] = blocknum1;
 				ack[3] = blocknum2;
                 
-				sendPacket = new DatagramPacket(ack, ack.length, receivedPacket.getAddress(), receivedPacket.getPort());
+				// check for error port 
+				if(this.port == 0){
+					this.port =  receivedPacket.getPort();
+				}
 				
-				System.out.println("Server: Sending packet to simulator.");
-		        System.out.println("To host: " + sendPacket.getAddress());
-		        System.out.println("Destination host port: " + sendPacket.getPort());
-		        len = sendPacket.getLength();
-		        System.out.println("Length: " + len);
-		        System.out.println("Contents(bytes): " + ack);
-		        String contents = new String(ack,0,len);
-		        System.out.println("Contents(string): " + contents + "\n");
-				
-		        try {
-		             Thread.sleep(500);
-		        } catch (InterruptedException e) {
-		        	 e.printStackTrace();
-		        }
-		        
-		        System.out.println("Server: Waiting for packet from simulator............" + "\n");
-		        
-		        try {
-		             Thread.sleep(500);
-		        } catch (InterruptedException e) {
-		        	 e.printStackTrace();
-		        }
-		        
-				try {
-					Socket.send(sendPacket);
-				} catch (IOException e){
+				if(this.port !=  receivedPacket.getPort()){
+					// create a error datagram with error 5
+					byte[] err5 = new byte[TOTAL_SIZE];
+					err5[0] = 0;
+					err5[1] = 5;
+					err5[2] = 0;
+					err5[3] = 5;
+					// the port is not the same
+					String error = "Unknown Port";
+					System.out.println("Error 5: unknown port");
+					System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
+					err5[error.getBytes().length+4] = 0;
+					// create the datagram Packet
+					DatagramPacket errorPacket5 = new DatagramPacket(err5, err5.length,  receivedPacket.getAddress(),  receivedPacket.getPort());
+					// send the pakcet and wait for the new packet
+					 try{
+					   Socket .send(errorPacket5);
+				     } catch (IOException e){
 					e.printStackTrace();
 					System.exit(1);
+				     }
+					//sendReceiveSocket.receive(receivePacket);
+				} else {
+				
+					sendPacket = new DatagramPacket(ack, ack.length, receivedPacket.getAddress(), receivedPacket.getPort());
+					
+					System.out.println("Server: Sending packet to simulator.");
+			        System.out.println("To host: " + sendPacket.getAddress());
+			        System.out.println("Destination host port: " + sendPacket.getPort());
+			        len = sendPacket.getLength();
+			        System.out.println("Length: " + len);
+			        System.out.println("Contents(bytes): " + ack);
+			        String contents = new String(ack,0,len);
+			        System.out.println("Contents(string): " + contents + "\n");
+					
+			        try {
+			             Thread.sleep(500);
+			        } catch (InterruptedException e) {
+			        	 e.printStackTrace();
+			        }
+			        
+			        System.out.println("Server: Waiting for packet from simulator............" + "\n");
+			        
+			        try {
+			             Thread.sleep(500);
+			        } catch (InterruptedException e) {
+			        	 e.printStackTrace();
+			        }
+			        
+					try {
+						Socket.send(sendPacket);
+					} catch (IOException e){
+						e.printStackTrace();
+						System.exit(1);
+					}
 				}
                 
 				if(blocknum2 == 255) {
@@ -235,13 +344,29 @@ public class TFTPServerThread implements Runnable
 					System.exit(1);
 				}
 				
+				//  re-send the data if it has the wrong port 
+				while(receivedPacket.getData()[1] == 5) {
+					if(receivedPacket.getData()[3] == 4) {
+						System.exit(1);
+					} else {
+						Socket.send(sendPacket);
+					}
+				}
+							
+				// check for error 4
+				if(receivedPacket.getData()[0] != 0 || receivedPacket.getData()[1] != 3 ||
+						receivedPacket.getData()[2] != blocknum1  || receivedPacket.getData()[3] !=blocknum2) {
+					String error4 = "Format Mistake";
+					formErrPacket (error4 ); 
+				}
+				
 				System.out.println("Server: Packet received from simulator.");
 		        System.out.println("From host: " + receivedPacket.getAddress());
 		        System.out.println("Host port: " + receivedPacket.getPort());
 		        len = receivedPacket.getLength();
 		        System.out.println("Length: " + len);
 		        System.out.println("Contents(bytes): " + msg);
-		        contents = new String(msg,0,len);
+		        String contents = new String(msg,0,len);
 		        System.out.println("Contents(string): " + contents + "\n");
 		        
 		        try {
