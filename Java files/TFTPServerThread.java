@@ -29,12 +29,12 @@ public class TFTPServerThread implements Runnable
 		}
 	}
 	
-	public void  formErrPacket (String msg){
+	/*public void  formErrPacket (String msg){
 		DatagramPacket errorPacket ; 
 		byte [] msgbytes = msg.getBytes(); 
 		int msgLen = msgbytes.length; 
 		msgLen += 5;
-		byte[] error = new byte [msgLen]; 
+		byte[] error = new byte [msgLen];  
 		error[0] = 0 ; 
 		error[1] = 5 ; 
 		error[2] = 0 ; 
@@ -51,7 +51,8 @@ public class TFTPServerThread implements Runnable
 	    // terminate
 	    System.exit(1);
 	    
-	}
+	}*/
+	
 	   
 	public void identifyReq()
 	{
@@ -124,7 +125,7 @@ public class TFTPServerThread implements Runnable
 			  //System.arraycopy(src, srcLoc, dest, destLoc, len)
 				System.arraycopy(data, 0, msg, 4, len);
 				
-				if(this.port == 0){
+				/*if(this.port == 0){
 					this.port =  receivedPacket.getPort();
 				}
 				
@@ -150,7 +151,7 @@ public class TFTPServerThread implements Runnable
 					System.exit(1);
 				     }
 					//sendReceiveSocket.receive(receivePacket);
-				} else {
+				} else {*/
 					sendPacket = new DatagramPacket(msg, i+4, receivedPacket.getAddress(), receivedPacket.getPort());
 					try {
 						Socket.send(sendPacket);
@@ -158,16 +159,16 @@ public class TFTPServerThread implements Runnable
 						e.printStackTrace();
 						System.exit(1);
 					}
-				}// end port check 
+				//}// end port check 
 				
 				//  re-send the data if it has the wrong port 
-				while(receivedPacket.getData()[1] == 5){
+				/*while(receivedPacket.getData()[1] == 5){
 					if(receivedPacket.getData()[3] == 4){
 						System.exit(1);
 					} else {
 						Socket.send(sendPacket);
 					}
-				}
+				}*/
 				
 				sendPacket = new DatagramPacket(msg, len+4, receivedPacket.getAddress(), receivedPacket.getPort());
 				
@@ -207,11 +208,11 @@ public class TFTPServerThread implements Runnable
 				blocknum2++;
 			    
 				// check for error 4
-				if(receivedPacket.getData()[0] != 0 || receivedPacket.getData()[1] != 3 ||
+				/*if(receivedPacket.getData()[0] != 0 || receivedPacket.getData()[1] != 3 ||
 						receivedPacket.getData()[2] != blocknum1  || receivedPacket.getData()[3] !=blocknum2) {
 					String error4 = "Format Mistake";
 					formErrPacket(error4);
-				}
+				}*/
 				
 			    receivedPacket = new DatagramPacket(msg, msg.length);
         		
@@ -268,7 +269,7 @@ public class TFTPServerThread implements Runnable
 				ack[3] = blocknum2;
                 
 				// check for error port 
-				if(this.port == 0){
+				/*if(this.port == 0){
 					this.port =  receivedPacket.getPort();
 				}
 				
@@ -294,7 +295,7 @@ public class TFTPServerThread implements Runnable
 					System.exit(1);
 				     }
 					//sendReceiveSocket.receive(receivePacket);
-				} else {
+				} else {*/
 				
 					sendPacket = new DatagramPacket(ack, ack.length, receivedPacket.getAddress(), receivedPacket.getPort());
 					
@@ -327,7 +328,7 @@ public class TFTPServerThread implements Runnable
 						e.printStackTrace();
 						System.exit(1);
 					}
-				}
+				//} end check port
                 
 				if(blocknum2 == 255) {
 					blocknum1++;
@@ -354,11 +355,11 @@ public class TFTPServerThread implements Runnable
 				}
 							
 				// check for error 4
-				if(receivedPacket.getData()[0] != 0 || receivedPacket.getData()[1] != 3 ||
+				/*if(receivedPacket.getData()[0] != 0 || receivedPacket.getData()[1] != 3 ||
 						receivedPacket.getData()[2] != blocknum1  || receivedPacket.getData()[3] !=blocknum2) {
 					String error4 = "Format Mistake";
 					formErrPacket (error4 ); 
-				}
+				}*/
 				
 				System.out.println("Server: Packet received from simulator.");
 		        System.out.println("From host: " + receivedPacket.getAddress());
@@ -366,7 +367,7 @@ public class TFTPServerThread implements Runnable
 		        len = receivedPacket.getLength();
 		        System.out.println("Length: " + len);
 		        System.out.println("Contents(bytes): " + msg);
-		        String contents = new String(msg,0,len);
+		        contents = new String(msg,0,len);
 		        System.out.println("Contents(string): " + contents + "\n");
 		        
 		        try {
