@@ -19,14 +19,12 @@ public class TFTPClient {
 	private DatagramPacket sendPacket, receivePacket;
 	private DatagramSocket sendReceiveSocket;
 	private String contents;
-	
-	private static final String EXIT_CMD = "q";
-	private static final int TIMEOUT = 1000;
-	private static final int RETRANSMIT_TIME = 500;
+
 	private byte ackCntL=0;
 	private byte ackCntR=0;//starting byte
-	private int port; // port that it interacts with
-
+	private static final int TIMEOUT = 1000;
+	private static final int RETRANSMIT_TIME = 500;
+	
    	public TFTPClient()
    	{
    		try {
@@ -156,15 +154,11 @@ public class TFTPClient {
 		} 
 	}
    	
-   	private void sendPackets(DatagramPacket sendPacket2) throws IOException {
-		// TODO Auto-generated method stub
-   		sendReceiveSocket.send(sendPacket);
-	}
-   	
    	public void read()
    	{
-		byte blocknum1=0;
+   		byte blocknum1=0;
 		byte blocknum2=1;
+		
 		try {
 			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("read.txt"));
 			for(;;) {
@@ -175,82 +169,35 @@ public class TFTPClient {
 				receivePacket = new DatagramPacket(msg, msg.length);
 
 				try {
-					sendReceiveSocket.receive(receivePacket);
-				} catch (IOException e) {
-					e.printStackTrace();
-					System.exit(1);
-				}
-				
-				try {
+					/*
+					 * Network Error Handling 
+					 * ACK retransmission is not needed as duplicate ack packets are disabled
+					 * Only have check for initial timeout
+					 */
 					for(;;) {
-						// if it the first time around and the port wasnt set yet
-						if(this.port == 0){
-							this.port = receivePacket.getPort();
-							System.out.println("################" + port);
-						}
-						
-						if(this.port != receivePacket.getPort()){
-							// create a error datagram with error 5
-							byte[] err5 = new byte[TOTAL_SIZE];
-							err5[0] = 0;
-							err5[1] = 5;
-							err5[2] = 0;
-							err5[3] = 5;
-							// the port is not the same
-							String error = "Unknown Port";
-							System.out.println("Error 5: unknown port");
-							System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
-							err5[error.getBytes().length+4] = 0;
-							// create the datagram Packet
-							DatagramPacket errorPacket5 = new DatagramPacket(err5, err5.length, receivePacket.getAddress(), receivePacket.getPort());
-							// send the pakcet and wait for the new packet
-							sendReceiveSocket.send(errorPacket5);
-							sendReceiveSocket.receive(receivePacket);
-						}
-						System.out.println("Ack received");
-						while(receivePacket.getData()[1] == 5){
-							if(receivePacket.getData()[3] == 4){
-								System.exit(1);
-							} else {
-								sendReceiveSocket.send(sendPacket);
-							}
-						}
-												
 						//set timeout time
-						
 
 						//****ERROR HANDLING: DATA LOSS****
-						//sendReceiveSocket.setSoTimeout(TIMEOUT);
+						sendReceiveSocket.setSoTimeout(TIMEOUT);
 						
 						//block socket, wait for packet
-						//sendReceiveSocket.receive(receivePacket);
+						sendReceiveSocket.receive(receivePacket);
 
-							
 						//****ERROR HANDLING: DUPLICATE DATA****
 						
 						//if incoming block number != ack counter + 1, keep waiting, 
 						//check for duplicate
-						byte byteCheck1 = (byte) (ackCntR);
-						byte byteCheck2 = (byte) (ackCntL);
+						byte byteCheck1 = (byte) (ackCntR+1);
 						//case where right ack byte counter is at max
 						if(ackCntR==255) {
-							byteCheck2++;
-						} 
-						byteCheck1++;
-						if(receivePacket.getData()[0] != 0 || receivePacket.getData()[1] != 3 ||
-								receivePacket.getData()[2] != byteCheck2 || receivePacket.getData()[3] != byteCheck1){
-							byte[] err4 = new byte[TOTAL_SIZE];
-							err4[0] = 0;
-							err4[1] = 5;
-							err4[2] = 0;
-							err4[3] = 4;
-							String error = "Format Mistake";
-							System.arraycopy(error.getBytes(), 0, err4, 4, error.getBytes().length);
-							err4[error.getBytes().length+4] = 0;
-							// create the datagram Packet
-							DatagramPacket errorPacket4 = new DatagramPacket(err4, err4.length, receivePacket.getAddress(), receivePacket.getPort());
-							// send the pakcet and wait for the new packet
-							sendReceiveSocket.send(errorPacket4);
+							byte leftCount = (byte) (ackCntL+1);
+							if(receivePacket.getData()[2]==leftCount && receivePacket.getData()[3]==byteCheck1) {
+								break;
+							}
+						}else if(receivePacket.getData()[2]==ackCntL && receivePacket.getData()[3]==byteCheck1) {
+							break;
+						} else {
+							System.out.println("Error cannot be handled this iteration");
 							System.exit(1);
 						}
 					}
@@ -370,57 +317,12 @@ public class TFTPClient {
 				int i = 0;//DATA DELAY TIMER
 
 				receivePacket = new DatagramPacket(msg, msg.length);
-
-				try {
-					sendReceiveSocket.receive(receivePacket);
-				} catch (IOException e) {
-					e.printStackTrace();
-					System.exit(1);
-				}
 				
 				try {
-
-					/*
-					 * Network Error Handling 
-					 * 
-					 * 
-					 * 
-					 * 
-					 */
+					// Network Error Handling 
 					
-								
 					for(;;) {
-						if(this.port == 0){
-							this.port = receivePacket.getPort();
-						}
-						
-						if(this.port != receivePacket.getPort()){
-							// create a error datagram with error 5
-							byte[] err5 = new byte[TOTAL_SIZE];
-							err5[0] = 0;
-							err5[1] = 5;
-							err5[2] = 0;
-							err5[3] = 5;
-							// the port is not the same
-							String error = "Unknown Port";
-							System.out.println("Error 5: unknown port");
-							System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
-							err5[error.getBytes().length+4] = 0;
-							// create the datagram Packet
-							DatagramPacket errorPacket5 = new DatagramPacket(err5, err5.length, receivePacket.getAddress(), receivePacket.getPort());
-							// send the pakcet and wait for the new packet
-							sendReceiveSocket.send(errorPacket5);
-							sendReceiveSocket.receive(receivePacket);
-						}
-						
-						System.out.println("Ack received");
-						while(receivePacket.getData()[1] == 5){
-							if(receivePacket.getData()[3] == 4){
-								System.exit(1);
-							} else {
-								sendReceiveSocket.send(sendPacket);
-							}
-						}				
+										
 						
 						//set packet delay time to .5s
 						while (i<2) {
@@ -447,33 +349,31 @@ public class TFTPClient {
 							
 							//if incoming block number != ack counter + 1, keep waiting, 
 							//check for duplicate
-						byte byteCheck1 = (byte) (ackCntR);
-						byte byteCheck2 = (byte) (ackCntL);
-						//case where right ack byte counter is at max
-						if(ackCntR==255) {
-							byteCheck2++;
-						} 
-						byteCheck1++;
-						if(receivePacket.getData()[0] != 0 || receivePacket.getData()[1] != 3 ||
-								receivePacket.getData()[2] != byteCheck2 || receivePacket.getData()[3] != byteCheck1){
-							byte[] err4 = new byte[TOTAL_SIZE];
-							err4[0] = 0;
-							err4[1] = 5;
-							err4[2] = 0;
-							err4[3] = 4;
-							String error = "Format Mistake";
-							System.arraycopy(error.getBytes(), 0, err4, 4, error.getBytes().length);
-							err4[error.getBytes().length+4] = 0;
-							// create the datagram Packet
-							DatagramPacket errorPacket4 = new DatagramPacket(err4, err4.length, receivePacket.getAddress(), receivePacket.getPort());
-							// send the pakcet and wait for the new packet
-							sendReceiveSocket.send(errorPacket4);
-							System.exit(1);
-						}
+							byte byteCheck1 = (byte) (ackCntR+1);
+							//case where right ack byte counter is at max
+							if(ackCntR==255) {
+								byte leftCount = (byte) (ackCntL+1);
+								if(receivePacket.getData()[2]==leftCount && receivePacket.getData()[3]==byteCheck1) {
+									break;
+								}
+							}else if(receivePacket.getData()[2]==ackCntL && receivePacket.getData()[3]==byteCheck1) {
+								break;
+							} else {
+								System.out.println("Packet not as expected - error cannot be handled this iteration");
+								System.exit(1);
+							}
+						
 					}
 				} catch (IOException e) {
 					System.out.println("No data received: Data lost.");
 					System.out.println("Shutting down.");
+					System.exit(1);
+				}
+				
+				try {
+					sendReceiveSocket.receive(receivePacket);
+				} catch (IOException e) {
+					e.printStackTrace();
 					System.exit(1);
 				}
 				
