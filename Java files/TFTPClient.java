@@ -22,8 +22,8 @@ public class TFTPClient {
 
 	private byte ackCntL=0;
 	private byte ackCntR=0;//starting byte
-	private static final int TIMEOUT = 1000;
-	private static final int RETRANSMIT_TIME = 500;
+	private static final int TIMEOUT = 50000;
+	private static final int RETRANSMIT_TIME = 25000;
 	
    	public TFTPClient()
    	{
@@ -322,58 +322,54 @@ public class TFTPClient {
 					// Network Error Handling 
 					
 					for(;;) {
-										
-						
-						//set packet delay time to .5s
-						while (i<2) {
-						
+						sendReceiveSocket.receive(receivePacket);
+						/*
+						while(true) {
 							try {
+								//sendReceiveSocket.setSoTimeout(TIMEOUT);
 								
-								//****ERROR HANDLING: DATA LOSS****
-								sendReceiveSocket.setSoTimeout(RETRANSMIT_TIME);//set timeout time
-								
-								//block socket, wait for packet
-								sendReceiveSocket.receive(receivePacket);
-							} catch (SocketTimeoutException e){
-								//if ack packet hasn't been received after .5s
-								//resend
-								if(i!=1){ 
-									sendReceiveSocket.send(sendPacket);
-									i++;
-								}
-								System.out.println("ACK not received, timing out." );
-								System.exit(1);
-							}
-						}	
-							//****ERROR HANDLING: DUPLICATE DATA****
-							
-							//if incoming block number != ack counter + 1, keep waiting, 
-							//check for duplicate
-							byte byteCheck1 = (byte) (ackCntR+1);
-							//case where right ack byte counter is at max
-							if(ackCntR==255) {
-								byte leftCount = (byte) (ackCntL+1);
-								if(receivePacket.getData()[2]==leftCount && receivePacket.getData()[3]==byteCheck1) {
-									break;
-								}
-							}else if(receivePacket.getData()[2]==ackCntL && receivePacket.getData()[3]==byteCheck1) {
 								break;
-							} else {
-								System.out.println("Packet not as expected - error cannot be handled this iteration");
-								System.exit(1);
+							} catch (SocketTimeoutException e) {
+								sendReceiveSocket.send(sendPacket);
 							}
+						}
+						*/
+						//set timeout time
+
+						//****ERROR HANDLING: DATA LOSS****
 						
+						
+						//block socket, wait for packet
+						
+						//****ERROR HANDLING: DUPLICATE DATA****
+						
+						//if incoming block number != ack counter + 1, keep waiting, 
+						//check for duplicate
+						/*
+						byte byteCheck1 = (byte) (ackCntR+1);
+						//case where right ack byte counter is at max
+						if(ackCntR==255) {
+							byte leftCount = (byte) (ackCntL+1);
+							if(receivePacket.getData()[2]==leftCount && receivePacket.getData()[3]==byteCheck1) {
+								break;
+							}
+						}else if(receivePacket.getData()[2]==ackCntL && receivePacket.getData()[3]==byteCheck1) {
+							break;
+						} else {
+							System.out.println("Packet not as expected - error cannot be handled this iteration");
+							System.exit(1);
+						}
+						*/
+						if(receivePacket.getData()[2] == ackCntL && receivePacket.getData()[3] == ackCntR) {
+							break;
+						} else {
+							System.out.println("Packet not as expected - error cannot be handled this iteration");
+							System.exit(1);
+						}
 					}
 				} catch (IOException e) {
 					System.out.println("No data received: Data lost.");
 					System.out.println("Shutting down.");
-					System.exit(1);
-				}
-				
-				try {
-					sendReceiveSocket.receive(receivePacket);
-				} catch (IOException e) {
-					e.printStackTrace();
 					System.exit(1);
 				}
 				

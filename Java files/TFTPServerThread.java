@@ -151,8 +151,8 @@ public class TFTPServerThread implements Runnable
 					System.exit(1);
 				     }
 					//sendReceiveSocket.receive(receivePacket);
-				} else {*/
-					sendPacket = new DatagramPacket(msg, i+4, receivedPacket.getAddress(), receivedPacket.getPort());
+				} else {
+					sendPacket = new DatagramPacket(msg, len+4, receivedPacket.getAddress(), receivedPacket.getPort());
 					try {
 						Socket.send(sendPacket);
 					} catch (IOException e){
@@ -368,7 +368,7 @@ public class TFTPServerThread implements Runnable
 		        System.out.println("Length: " + len);
 		        System.out.println("Contents(bytes): " + msg);
 		        contents = new String(msg,0,len);
-		        System.out.println("Contents(string): " + contents + "\n");
+		        System.out.println("Contents(string): \n" + contents + "\n");
 		        
 		        try {
 		             Thread.sleep(500);
