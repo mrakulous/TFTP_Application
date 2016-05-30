@@ -274,7 +274,7 @@ public class TFTPServerThread implements Runnable
 	public void write() {
 		
 		Byte blocknum1= new Byte((byte) 0);
-		Byte blocknum2= new Byte((byte) 1);
+		Byte blocknum2= new Byte((byte) 0);
    		
 		try {
 			// The file to get the data from.
