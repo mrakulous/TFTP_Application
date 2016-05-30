@@ -23,7 +23,7 @@ public class TFTPClient {
 	private String contents;
 
 	private Byte ackCntL=0;
-	private Byte ackCntR=1;//starting byte
+	private Byte ackCntR=0;//starting byte
 	private static final int TIMEOUT = 50000;
 	private static final int RETRANSMIT_TIME = 25000;
 	
@@ -343,7 +343,7 @@ public class TFTPClient {
 	public void write() {
 		
 		Byte blocknum1= new Byte((byte)0);
-		Byte blocknum2= new Byte((byte)1);//first block sent
+		Byte blocknum2= new Byte((byte)0);//first block sent
 		int len;
 		
 		try {
@@ -360,6 +360,8 @@ public class TFTPClient {
 					
 					for(;;) {
 						sendReceiveSocket.receive(receivePacket);
+						
+						
 						/*
 						while(true) {
 							try {
@@ -402,19 +404,27 @@ public class TFTPClient {
 						Byte leftByte = new Byte(receivePacket.getData()[2]);
 						Byte rightByte = new Byte(receivePacket.getData()[3]);
 						
-						//If ack counter matches packet block number, continue, else break
-						if(leftByte.compareTo(ackCntL) == 0 && rightByte.compareTo(ackCntR) == 0) {
-							//increment ack counter if correct block number received
+						
+						
+						if(leftByte.compareTo(ackCntL) == 0 && rightByte.compareTo(ackCntR) == 0) {//If ack counter matches packet block number, continue, else break
+								//increment ack counter if correct block number received
 							if(ackCntR.intValue() == 255) {
 								ackCntL++;
 								ackCntR=1;
 							} else {
 								ackCntR++;
 							}
-							
+					 	
 							break;
+						} else if (rightByte.intValue() == ackCntR.intValue()-1) {
+							System.out.println("Duplicate ACK received, ignoring duplicate ACK and waiting for current ACK.");							
 						} else {
-							System.out.println("Packet not as expected - error cannot be handled this iteration");
+						
+							System.out.println("Packet not as expected - "
+									+ ""
+									+ ""
+									+ ""
+									+ "");
 							System.exit(1);
 						}
 					}//end for
@@ -435,6 +445,7 @@ public class TFTPClient {
 				Byte rightByte = new Byte(receivePacket.getData()[3]);
 				String contents;
 				
+				//RECEIVED PACKET FROM SIM
 				System.out.println("Client: Packet received from simulator.");
 		        System.out.println("From host: " + receivePacket.getAddress());
 		        System.out.println("Host port: " + receivePacket.getPort());
@@ -469,14 +480,15 @@ public class TFTPClient {
 		        	System.out.println("Maximum memory reached.  Aborting...");
 		        	System.exit(1);
 		        }
+		        testString(blocknum2.toString());
 					
 				
 				len = in.read(data);
 				
 				msg[0] = 0;
 				msg[1] = 3;
-				msg[2] = blocknum1;
-				msg[3] = blocknum2;
+				msg[2] = blocknum1.byteValue();
+				msg[3] = blocknum2.byteValue();
 
 				System.arraycopy(data, 0, msg, 4, len);
 					
@@ -487,7 +499,7 @@ public class TFTPClient {
 		        System.out.println("Destination host port: " + sendPacket.getPort());
 		        packetLength = sendPacket.getLength();
 		        System.out.println("Length: " + packetLength);
-		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+		        System.out.println("Block Number: " + blocknum1.toString() + blocknum2.toString());
 		        System.out.println("Contents(bytes): " + msg);
 		        if(packetLength > 4) {
 		        	// It is not an ACK packet
