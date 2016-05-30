@@ -1,3 +1,5 @@
+package project;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -6,19 +8,19 @@ import java.util.*;
 
 public class TFTPServerThread implements Runnable
 {
-	public static enum Request { READ, WRITE, ERROR};
-	public static final int DATA_SIZE = 512;
-	public static final int TOTAL_SIZE = DATA_SIZE+4;  
+	private static enum Request { READ, WRITE, ERROR};
+	private static final int DATA_SIZE = 512;
+	private static final int TOTAL_SIZE = DATA_SIZE+4;  
+	private static final int DATA_PACKET = 3;
+	private static final int ACK_PACKET = 4;
 	private DatagramPacket receivedPacket, sendPacket;
 	private DatagramSocket Socket;
-	private String filename;
 	private String mode;
 	private Request req;
 	private String errMsg;
 	private int port;
 
 	private boolean firstTime = true;
-	private String contents;
 	private Byte leftByte;
 	private Byte rightByte;
 	
@@ -61,10 +63,11 @@ public class TFTPServerThread implements Runnable
 	   
 	public void identifyReq()
 	{
+		String filename = "";
 		byte[] data = receivedPacket.getData();
 		int len = receivedPacket.getLength();
-		int filecount=0;
-		int modecount=0;
+		int fileNameSize=0;//size of file nname
+		int modecount=0;//size of mode name
 	             
 		if (data[0]!=0) req = Request.ERROR; // bad
 		if (data[1]==1) req = Request.READ; // could be read
@@ -72,21 +75,21 @@ public class TFTPServerThread implements Runnable
 		else req = Request.ERROR; // bad
 		
 		if (req!=Request.ERROR) { // check for filename
-			for(filecount=2; filecount<len; filecount++) {
-				if (data[filecount] == 0) break;
-			}
-			if (filecount==len) req=Request.ERROR; // didn't find a 0 byte
-			if (filecount==2) req=Request.ERROR; // filename is 0 bytes long
-			filename = new String(data,2,filecount-2);
+			for(fileNameSize=2; fileNameSize<len; fileNameSize++) {
+				if (data[fileNameSize] == 0) break;
+			}    
+			if (fileNameSize==len) req=Request.ERROR; // didn't find a 0 byte
+			if (fileNameSize==2) req=Request.ERROR; // filename is 0 bytes long
+			filename = new String(data,2,fileNameSize-2);
 		}
 		 
 		if(req!=Request.ERROR) { // check for mode
-			for(modecount=filecount+1;modecount<len;modecount++) { 
+			for(modecount=fileNameSize+1;modecount<len;modecount++) { 
 				if (data[modecount] == 0) break;
 			}
 			if (modecount==len) req=Request.ERROR; // didn't find a 0 byte
-			if (modecount==filecount+1) req=Request.ERROR; // mode is 0 bytes long
-			mode = new String(data,filecount,modecount-filecount-1);
+			if (modecount==fileNameSize+1) req=Request.ERROR; // mode is 0 bytes long
+			mode = new String(data,fileNameSize,modecount-fileNameSize-1);
 		}
 		         
 		if(modecount!=len-1) req=Request.ERROR; // other stuff at end of packet        
@@ -96,9 +99,9 @@ public class TFTPServerThread implements Runnable
 		// Create a response.
 		
 		if(req==Request.READ) {
-			read();
+			read(filename);
 		} else if(req==Request.WRITE) {
-			write();
+			write(filename);
 		}
 	}
 
@@ -106,13 +109,14 @@ public class TFTPServerThread implements Runnable
 	 * Retrieve text file from directory, put it into packet and send to client
 	 * @throws SocketException 
 	 */
-	 public void read() {
+	 public void read(String fn) {
 		 
+		String filename = fn; 
 		Byte blocknum1= new Byte((byte) 0);
-		Byte blocknum2= new Byte ((byte) 1);
+		Byte blocknum2= new Byte((byte) 1);
 		Byte ackByte1;
 		Byte ackByte2;
-		int len;
+		int dataCheck, len;
 		DatagramPacket receivePacket;
 		
 		try {
@@ -123,15 +127,23 @@ public class TFTPServerThread implements Runnable
 				byte[] data = new byte[DATA_SIZE];
 				int i = 0;
 				
-				len = in.read(data);
-				
+				dataCheck = in.read(data);
+				if(dataCheck==-1) {
+					len = 0;
+				} else {
+					len = dataCheck;
+				}
+
 				msg[0] = 0;
-				msg[1] = 3;
+				msg[1] = DATA_PACKET;
 				msg[2] = blocknum1;
 				msg[3] = blocknum2;
 				
 			  //System.arraycopy(src, srcLoc, dest, destLoc, len)
-				System.arraycopy(data, 0, msg, 4, len);
+				if(len != 0) {
+					System.arraycopy(data, 0, msg, 4, len);
+				}
+				
 				
 				/*if(this.port == 0){
 					this.port =  receivedPacket.getPort();
@@ -195,9 +207,6 @@ public class TFTPServerThread implements Runnable
 		        } catch (InterruptedException e) {
 		        	 e.printStackTrace();
 		        }
-		        
-		        System.out.println("Server: Waiting for packet from simulator............" + "\n");
-		        
 		        try {
 		             Thread.sleep(500);
 		        } catch (InterruptedException e) {
@@ -223,6 +232,9 @@ public class TFTPServerThread implements Runnable
 					System.exit(1);
 				}
 			    
+		        
+		        System.out.println("Server: Waiting for packet from simulator............" + "\n");
+		        
 				// check for error 4
 				/*if(receivedPacket.getData()[0] != 0 || receivedPacket.getData()[1] != 3 ||
 						receivedPacket.getData()[2] != blocknum1  || receivedPacket.getData()[3] !=blocknum2) {
@@ -247,16 +259,16 @@ public class TFTPServerThread implements Runnable
 		        System.out.println("From host: " + receivedPacket.getAddress());
 		        System.out.println("Host port: " + receivedPacket.getPort());
 		        packetLength = receivedPacket.getLength();
-		        System.out.println("Length: " + packetLength);
+		        System.out.println("Packet Length: " + packetLength);
 		        System.out.println("Block Number: " + ackByte1.toString() + ackByte2.toString());
 		        System.out.println("Contents(bytes): " + msg);
 		        contents = new String(msg,0,packetLength);
 		        System.out.println("Contents(string): \n" + contents + "\n");
 		        
 			} while (len==DATA_SIZE);
-				if(len<DATA_SIZE) {
-					in.close();
-				}
+			if(len<DATA_SIZE) {
+				in.close();
+			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -266,17 +278,19 @@ public class TFTPServerThread implements Runnable
 		}
 	}
 
-        /*
+   /*
 	* Write the received datagram packet to an output file.
 	*/
-	public void write() {
+	public void write(String fn) {
 		
+		String filename = fn;
 		Byte blocknum1= new Byte((byte) 0);
-		Byte blocknum2= new Byte((byte) 1);
+		Byte blocknum2= new Byte((byte) 0);
+		String contents;
    		
 		try {
 			// The file to get the data from.
-			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(filename));
+			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("new"+filename));
    			
 			for(;;) {
 				int len;
@@ -285,7 +299,7 @@ public class TFTPServerThread implements Runnable
 				byte[] ack = new byte[4];
                 
 				ack[0] = 0;
-				ack[1] = 4;
+				ack[1] = ACK_PACKET;
 				ack[2] = blocknum1;
 				ack[3] = blocknum2;
                 
@@ -324,7 +338,7 @@ public class TFTPServerThread implements Runnable
 			        System.out.println("To host: " + sendPacket.getAddress());
 			        System.out.println("Destination host port: " + sendPacket.getPort());
 			        len = sendPacket.getLength();
-			        System.out.println("Length: " + len);
+			        System.out.println("Packet Length: " + len);
 			        if(firstTime) {
 						// Do nothing
 			        	firstTime = false;
@@ -344,8 +358,8 @@ public class TFTPServerThread implements Runnable
 				    	// It is an ACK packet
 				    	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 				    }
-				    
-				    try {
+			        
+			        try {
 			             Thread.sleep(500);
 			        } catch (InterruptedException e) {
 			        	 e.printStackTrace();
@@ -430,8 +444,8 @@ public class TFTPServerThread implements Runnable
 			    		System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 			    	}
 			    }
-			    
-			    try {
+
+		        try {
 		             Thread.sleep(500);
 		        } catch (InterruptedException e) {
 		        	 e.printStackTrace();
@@ -462,5 +476,9 @@ public class TFTPServerThread implements Runnable
 
 	public void run(){
 		identifyReq();
+	}
+	
+	private void testString(String n) {
+		System.out.println(n);
 	}
 }
