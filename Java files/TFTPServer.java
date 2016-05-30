@@ -83,7 +83,12 @@ public class TFTPServer {
 	    		 System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 	    	 }
 	     }
-
+	     
+	     try {
+	    	 Thread.sleep(500);
+         } catch (InterruptedException e) {
+        	 e.printStackTrace();
+         }
 	     
          TFTPServerThread st = new TFTPServerThread(receivePacket);
          se = new Thread(st);

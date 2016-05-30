@@ -422,7 +422,12 @@ public class TFTPClient {
 					System.out.println("Shutting down.");
 					System.exit(1);
 				}
-
+				
+				try {
+		             Thread.sleep(500);
+		        } catch (InterruptedException e) {
+		        	 e.printStackTrace();
+		        }
 				
 				Byte leftByte = new Byte(receivePacket.getData()[2]);
 				Byte rightByte = new Byte(receivePacket.getData()[3]);
@@ -444,7 +449,12 @@ public class TFTPClient {
 		        	// It is an ACK packet
 		        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 		        }
-
+		        
+		        try {
+		             Thread.sleep(500);
+		        } catch (InterruptedException e) {
+		        	 e.printStackTrace();
+		        }
 		        
 		        if (blocknum1 < 256) {
 					if(blocknum2 == 255) {
@@ -487,6 +497,11 @@ public class TFTPClient {
 		        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 		        }
 
+		        try {
+		             Thread.sleep(500);
+		        } catch (InterruptedException e) {
+		        	 e.printStackTrace();
+		        }
 		        
 				try {
 					sendReceiveSocket.send(sendPacket);

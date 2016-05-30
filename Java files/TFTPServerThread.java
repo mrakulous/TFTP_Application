@@ -344,11 +344,21 @@ public class TFTPServerThread implements Runnable
 				    	// It is an ACK packet
 				    	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 				    }
-
+				    
+				    try {
+			             Thread.sleep(500);
+			        } catch (InterruptedException e) {
+			        	 e.printStackTrace();
+			        }
 			        
 			        System.out.println("Server: Waiting for packet from simulator............" + "\n");
 			        
-
+			        try {
+			             Thread.sleep(500);
+			        } catch (InterruptedException e) {
+			        	 e.printStackTrace();
+			        }
+			        
 					try {
 						Socket.send(sendPacket);
 					} catch (IOException e){
@@ -420,7 +430,12 @@ public class TFTPServerThread implements Runnable
 			    		System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 			    	}
 			    }
-
+			    
+			    try {
+		             Thread.sleep(500);
+		        } catch (InterruptedException e) {
+		        	 e.printStackTrace();
+		        }
                 
 				System.arraycopy(receivedPacket.getData(), 4, data, 0, receivedPacket.getLength()-4);
                 
