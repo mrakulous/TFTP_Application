@@ -20,6 +20,9 @@ public class TFTPClient {
 	//msg array size
 	public static final int TOTAL_SIZE = DATA_SIZE+4;
 	
+	private static final int DATA_PACKET = 3;
+	private static final int ACK_PACKET = 4;
+	
 	
 	private static final int TIMEOUT = 50000;
 	private static final int RETRANSMIT_TIME = 25000;
@@ -243,6 +246,7 @@ public class TFTPClient {
 								}
 							} else {
 								System.out.println("File too big, exiting program.");
+								System.exit(1);
 							}
 							
 							break;
@@ -309,7 +313,7 @@ public class TFTPClient {
 		        System.out.println("Packet Length: " + packetLength);
 		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 		        System.out.println("Contents(bytes): " + ack);
-		        contents = new String(ack, 0, packetLength);
+		        contents = new String(ack, 0, ack.length);
 		        System.out.println("Contents(string): " + contents + "\n");
 		        
 		        try {
@@ -356,10 +360,16 @@ public class TFTPClient {
 		        	 e.printStackTrace();
 		        }
 				
-				if(blocknum2 == 255) {
-					blocknum1++;
+				if(blocknum1 <256) {
+					if(blocknum2 == 255) {
+						blocknum1++;
+						blocknum2 = 0;
+					} else {
+						blocknum2++;
+					}
+				} else {
+					System.out.println("Memory limit reached.  Program aborted.");
 				}
-				blocknum2++;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -374,7 +384,7 @@ public class TFTPClient {
 		Byte blocknum2= new Byte((byte)1);//first block sent
 		ackCntL = 0;
 		ackCntR = 0;//start ack counter at 0
-		int len;
+		int len, dataCheck;
 		
 		try {
 			BufferedInputStream in = new BufferedInputStream(new FileInputStream(filepath));
@@ -435,11 +445,15 @@ public class TFTPClient {
 						//If ack counter matches packet block number, continue, else break
 						if(leftByte.compareTo(ackCntL) == 0 && rightByte.compareTo(ackCntR) == 0) {
 							//increment ack counter if correct block number received
-							if(ackCntR.intValue() == 255) {
-								ackCntL++;
-								ackCntR=1;
+							if(ackCntL.intValue()<256) {
+								if(ackCntR.intValue() == 255) {
+									ackCntL++;
+									ackCntR=0;
+								} else {
+									ackCntR++;
+								}
 							} else {
-								ackCntR++;
+								System.out.println("File too big, exiting program.");
 							}
 							
 							break;
@@ -489,24 +503,32 @@ public class TFTPClient {
 		        	System.out.println("Maximum memory reached.  Aborting...");
 		        	System.exit(1);
 		        }
-					
-				
-				len = in.read(data);
-				
+		        
+		        //
+		        dataCheck = in.read(data);
+				if(dataCheck==-1) {
+					len = 0;
+				} else {
+					len = dataCheck;
+				}
+
 				msg[0] = 0;
-				msg[1] = 3;
+				msg[1] = DATA_PACKET;
 				msg[2] = blocknum1;
 				msg[3] = blocknum2;
-
-				System.arraycopy(data, 0, msg, 4, len);
+				
+			  //System.arraycopy(src, srcLoc, dest, destLoc, len)
+				if(len != 0) {
+					System.arraycopy(data, 0, msg, 4, len);
+				}
 					
-				sendPacket = new DatagramPacket(msg, msg.length, InetAddress.getLocalHost(), 23);
+				sendPacket = new DatagramPacket(msg, msg.length, InetAddress.getLocalHost(), simPort);
 				
 				System.out.println("Client: Sending packet to simulator.");
 		        System.out.println("To host: " + sendPacket.getAddress());
 		        System.out.println("Destination host port: " + sendPacket.getPort());
 		        packetLength = sendPacket.getLength();
-		        System.out.println("Length: " + packetLength);
+		        System.out.println("Packet Length: " + packetLength);
 		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 		        System.out.println("Contents(bytes): " + msg);
 		        if(packetLength > 4) {
