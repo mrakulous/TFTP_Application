@@ -267,7 +267,7 @@ public class Sim {
 
 			   //if not valid option, give error msg and give options again
 			   if(packetType > 0 && packetType <= 4) {
-				   return packetType;
+				   break;
 			   } else {
 				   System.out.println("Please enter a valid option");
 			   }
@@ -275,6 +275,7 @@ public class Sim {
 			   System.out.println("Please enter a valid option.");
 		   }
 	   }
+	   return packetType;
    }
 
    public void duplicate () throws SocketException {
