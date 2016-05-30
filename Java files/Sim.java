@@ -100,6 +100,32 @@ public class Sim {
 		sendPacket = new DatagramPacket(data, len,
 				receivePacket.getAddress(), sport);
 
+		if(cmd!=0) {
+			byte[] currentBlock = null;
+			System.arraycopy(data, 2, currentBlock, 0, 2);
+			if(blockNum == java.nio.ByteBuffer.wrap(currentBlock).getInt() && data[1] == (byte)packetType){
+				if(cmd == 1){
+					try {
+						duplicate();
+					} catch (SocketException e) {
+						e.printStackTrace();
+					}
+				} else if(cmd ==2){
+					try {
+						delay();
+					} catch (SocketException e) {
+						e.printStackTrace();
+					}
+				} else {
+					try {
+    				   lost();
+					} catch (UnknownHostException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+        	}
+
 		System.out.println("Simulator: Sending packet to server.");
 		System.out.println("To host: " + sendPacket.getAddress());
 		System.out.println("Destination host port: " + sendPacket.getPort());
@@ -194,7 +220,7 @@ public class Sim {
 		if(cmd!=0) {
 			byte[] currentBlock = null;
 			System.arraycopy(data, 2, currentBlock, 0, 2);
-			if(blockNum == java.nio.ByteBuffer.wrap(currentBlock).getInt() && data[3] == packetType){
+			if(blockNum == java.nio.ByteBuffer.wrap(currentBlock).getInt() && data[1] == (byte)packetType){
 				if(cmd == 1){
 					try {
 						duplicate();
@@ -215,7 +241,7 @@ public class Sim {
 					}
 				}
 			}
-        }
+        	}
 
 		System.out.println("Simulator: Sending packet to client.");
 		System.out.println("To host: " + sendPacket.getAddress());
