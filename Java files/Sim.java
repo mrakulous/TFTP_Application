@@ -16,6 +16,10 @@ public class Sim {
 	public static final int MAC_SOCKET = 2300;
 	public static final int WIN_SOCKET = 23;
 	private int serverPort = 0;
+	
+	public static final int DATA_SIZE = 512;
+	public static final int TOTAL_SIZE = DATA_SIZE+4;
+	public boolean firstTime = true;
    
 	public Sim() {	      
 		try {
@@ -29,8 +33,11 @@ public class Sim {
 
 	public void receiveAndSendTFTP(){
 		int clientPort, j=0, len; 
+		String contents;
+		Byte leftByte;
+		Byte rightByte;
       
-		data = new byte[516];
+		data = new byte[TOTAL_SIZE];
 		receivePacket = new DatagramPacket(data, data.length);
       
 		System.out.println("Simulator: Waiting for packet from client............" + "\n");
@@ -40,6 +47,9 @@ public class Sim {
 			e.printStackTrace();
 			System.exit(1);
 		}
+		
+		leftByte = new Byte(receivePacket.getData()[2]);
+		rightByte = new Byte(receivePacket.getData()[3]);
        
 		System.out.println("Simulator: Packet received from client.");
 		System.out.println("From host: " + receivePacket.getAddress());
@@ -47,9 +57,29 @@ public class Sim {
 		System.out.println("Host port: " + clientPort);
 		len = receivePacket.getLength();
 		System.out.println("Length: " + len);
-		System.out.println("Contents(bytes): " + data);
-		String contents = new String(data,0,len);
-		System.out.println("Contents(string): \n" + contents + "\n");
+		if(firstTime) {
+			// Do nothing
+		}
+		else {
+			System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+		}
+        System.out.println("Contents(bytes): " + data);
+        if(firstTime) {
+        	// filename and mode
+        	contents = new String(data, 2, 17);
+        	System.out.println("Contents(string): \n" + contents + "\n");
+        }
+        else {
+	        if(len > 4) {
+	        	// It is not an ACK packet
+	        	contents = new String(data, 4, DATA_SIZE);
+	        	System.out.println("Contents(string): \n" + contents + "\n");
+	        }
+	        else {
+	        	// It is an ACK packet
+	        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+	        }
+        }
        
 		try {
 			Thread.sleep(500);
@@ -72,9 +102,30 @@ public class Sim {
 		System.out.println("Destination host port: " + sendPacket.getPort());
 		len = sendPacket.getLength();
 		System.out.println("Length: " + len);
-		System.out.println("Contents(bytes): " + data);
-		contents = new String(data,0,len);
-		System.out.println("Contents(string): \n" + contents + "\n");
+		if(firstTime) {
+			// Do nothing
+		}
+		else {
+			System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+		}
+        System.out.println("Contents(bytes): " + data);
+        if(firstTime) {
+        	// filename and mode
+        	contents = new String(data, 2, 17);
+        	System.out.println("Contents(string): \n" + contents + "\n");
+        	firstTime = false;
+        }
+        else {
+	        if(len > 4) {
+	        	// It is not an ACK packet
+	        	contents = new String(data, 4, DATA_SIZE);
+	        	System.out.println("Contents(string): \n" + contents + "\n");
+	        }
+	        else {
+	        	// It is an ACK packet
+	        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+	        }
+        }
 		
 		try {
 			Thread.sleep(500);
@@ -107,15 +158,26 @@ public class Sim {
 			System.exit(1);
 		}
 		
+		leftByte = new Byte(receivePacket.getData()[2]);
+		rightByte = new Byte(receivePacket.getData()[3]);
+		
 		System.out.println("Simulator: Packet received from server.");
 		System.out.println("From host: " + receivePacket.getAddress());
 		serverPort = receivePacket.getPort();
 		System.out.println("Host port: " + serverPort);
 		len = receivePacket.getLength();
 		System.out.println("Length: " + len);
-		System.out.println("Contents(bytes): " + data);
-		contents = new String(data,0,len);
-		System.out.println("Contents(string): \n" + contents + "\n");
+		System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+        System.out.println("Contents(bytes): " + data);
+        if(len > 4) {
+        	// It is not an ACK packet
+        	contents = new String(data, 4, DATA_SIZE);
+        	System.out.println("Contents(string): \n" + contents + "\n");
+        }
+        else {
+        	// It is an ACK packet
+        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+        }
 		
 		try {
 			Thread.sleep(500);
@@ -157,9 +219,17 @@ public class Sim {
 		System.out.println("Destination host port: " + sendPacket.getPort());
 		len = sendPacket.getLength();
 		System.out.println("Length: " + len);
-		System.out.println("Contents(bytes): " + data);
-		contents = new String(data,0,len);
-		System.out.println("Contents(string): \n" + contents + "\n");
+		System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+        System.out.println("Contents(bytes): " + data);
+        if(len > 4) {
+        	// It is not an ACK packet
+        	contents = new String(data, 4, DATA_SIZE);
+        	System.out.println("Contents(string): \n" + contents + "\n");
+        }
+        else {
+        	// It is an ACK packet
+        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+        }
 		
 		try {
 			sendSocket = new DatagramSocket();

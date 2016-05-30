@@ -15,6 +15,14 @@ public class TFTPServer {
    private DatagramPacket receivePacket;
    private static DatagramSocket receiveSocket;
    private static Thread se;
+   
+   public static final int DATA_SIZE = 512;
+   public static final int TOTAL_SIZE = DATA_SIZE+4;
+   private boolean firstTime = true;
+   private String contents;
+   private Byte leftByte;
+   private Byte rightByte;
+   
    public TFTPServer()
    {
 	   System.out.println("Server: Waiting for packet from simulator............" + "\n");
@@ -31,8 +39,7 @@ public class TFTPServer {
 
    public void receiveAndSendTFTP() throws Exception
    {
-	   	 byte[] data = new byte[516];
-	   	 
+	   	 byte[] data = new byte[TOTAL_SIZE];
       
 	   	 receivePacket = new DatagramPacket(data, data.length);
          // Block until a datagram packet is received from receiveSocket.
@@ -43,15 +50,39 @@ public class TFTPServer {
             e.printStackTrace();
             System.exit(1);
          }
-
+         
+         leftByte = new Byte(receivePacket.getData()[2]);
+         rightByte = new Byte(receivePacket.getData()[3]);
+ 		
          System.out.println("Server: Packet received from simulator.");
 	     System.out.println("From host: " + receivePacket.getAddress());
 	     System.out.println("Host port: " + receivePacket.getPort());
 	     int len = receivePacket.getLength();
 	     System.out.println("Length: " + len);
+	     if(firstTime) {
+				// Do nothing
+		 }
+	     else {
+	    	 System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+	     }
 	     System.out.println("Contents(bytes): " + data);
-	     String contents = new String(data,0,len);
-	     System.out.println("Contents(string): " + contents + "\n");
+	     if(firstTime) {
+	    	 // filename and mode
+	    	 contents = new String(data, 2, 17);
+	    	 System.out.println("Contents(string): \n" + contents + "\n");
+	    	 firstTime = false;
+	     }
+	     else {
+	    	 if(len > 4) {
+	    		 // It is not an ACK packet
+	    		 contents = new String(data, 4, DATA_SIZE);
+	    		 System.out.println("Contents(string): \n" + contents + "\n");
+	    	 }
+	    	 else {
+	    		 // It is an ACK packet
+	    		 System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+	    	 }
+	     }
 	     
 	     try {
              Thread.sleep(500);

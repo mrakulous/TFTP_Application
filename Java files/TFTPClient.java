@@ -20,8 +20,8 @@ public class TFTPClient {
 	private DatagramSocket sendReceiveSocket;
 	private String contents;
 
-	private byte ackCntL=0;
-	private byte ackCntR=0;//starting byte
+	private Byte ackCntL=0;
+	private Byte ackCntR=0;//starting byte
 	private static final int TIMEOUT = 50000;
 	private static final int RETRANSMIT_TIME = 25000;
 	
@@ -34,57 +34,62 @@ public class TFTPClient {
 			System.exit(1);
 		}
 	}
+   	
+   	public void runClient(Scanner readInput) {
+   		Scanner re = readInput;
+   		int cmd = 0;
+   		
+   		while(true) {
+			try {
+				System.out.print("[1]Read   [2]Write  [5]Shutdown : ");
+				cmd = Integer.parseInt(re.nextLine());
+				if(cmd == 1) {
+					req = Request.READ;
+					break;
+				} else if(cmd == 2) {
+					req = Request.WRITE;
+					break;
+				} else if (cmd == 5) {
+					System.exit(1);
+				}
+			} catch(NumberFormatException e) {
+				System.out.println("Please enter a valid option");
+			}
+		}
+   		
+   		while(true) {
+			try {
+				System.out.print("Filename : ");
+				filename = re.nextLine();
+				File input = new File(filename);
+				Scanner read = new Scanner(input);//used to verify if file is valid
+				break;
+			} catch(FileNotFoundException e) {
+				System.out.println("Please enter a valid filename");
+			}
+		}
+		while(true) {
+			try {
+				System.out.print("[1]netascii  [2]octet : ");
+				cmd = Integer.parseInt(re.nextLine());
+				if(cmd == 1) {
+					mode = "netascii";
+					break;
+				} else if(cmd == 2) {
+					mode = "octet";
+					break;
+				}
+			} catch(NumberFormatException e) {
+				System.out.println("Please enter a valid option");
+			}
+		}
+   		//for(;;) {
+   			run();
+   		//}
+   	}
 
    	public void run()
    	{
-		Scanner re = new Scanner(System.in);
-		int cmd = 0;
-
-		for(;;) {
-			while(true) {
-				try {
-					System.out.print("[1]Read   [2]Write  [5]Shutdown : ");
-					cmd = Integer.parseInt(re.nextLine());
-					if(cmd == 1) {
-						req = Request.READ;
-						break;
-					} else if(cmd == 2) {
-						req = Request.WRITE;
-						break;
-					} else if (cmd == 5) {
-						System.exit(1);
-					}
-				} catch(NumberFormatException e) {
-					System.out.println("Please enter a valid option");
-				}
-			}
-
-			while(true) {
-				try {
-					System.out.print("Filename : ");
-					filename = re.nextLine();
-					File input = new File(filename);
-					Scanner read = new Scanner(input);
-					break;
-				} catch(FileNotFoundException e) {
-					System.out.println("Please enter a valid filename");
-				}
-			}
-			while(true) {
-				try {
-					System.out.print("[1]netascii  [2]octet : ");
-					cmd = Integer.parseInt(re.nextLine());
-					if(cmd == 1) {
-						mode = "netascii";
-						break;
-					} else if(cmd == 2) {
-						mode = "octet";
-						break;
-					}
-				} catch(NumberFormatException e) {
-					System.out.println("Please enter a valid option");
-				}
-			}
 			mode = "octet";
 			byte[] msg = new byte[TOTAL_SIZE];
 			
@@ -122,8 +127,8 @@ public class TFTPClient {
 	        int packetLength = sendPacket.getLength();
 	        System.out.println("Length: " + packetLength);
 	        System.out.println("Contents(bytes): " + msg);
-	        String contents = new String(msg,0,packetLength);
-	        System.out.println("Contents(string): " + contents + "\n");
+	        String contents = new String(msg,2,packetLength);
+	        System.out.println("Contents(string): \n" + contents + "\n");
 			
 	        try {
 	             Thread.sleep(500);
@@ -151,13 +156,13 @@ public class TFTPClient {
 			} else if(req==Request.WRITE) {
 				write();
 			}
-		} 
 	}
    	
    	public void read()
    	{
-   		byte blocknum1=0;
-		byte blocknum2=1;
+   		Byte blocknum1=0;
+		Byte blocknum2=1;
+		ackCntR++;
 		
 		try {
 			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("read.txt"));
@@ -187,19 +192,40 @@ public class TFTPClient {
 						
 						//if incoming block number != ack counter + 1, keep waiting, 
 						//check for duplicate
-						byte byteCheck1 = (byte) (ackCntR+1);
+						//byte byteCheck1 = (byte) (ackCntR+1);
 						//case where right ack byte counter is at max
-						if(ackCntR==255) {
-							byte leftCount = (byte) (ackCntL+1);
-							if(receivePacket.getData()[2]==leftCount && receivePacket.getData()[3]==byteCheck1) {
-								break;
+						
+						//get received packet number
+						Byte leftByte = new Byte(receivePacket.getData()[2]);
+						Byte rightByte = new Byte(receivePacket.getData()[3]);
+						
+						/*
+						String test = "";
+						test += leftByte.toString();
+						test += rightByte.toString();
+						testString(test);
+						
+						String test2 = "";
+						test += ackCntL.toString();
+						test += ackCntR.toString();
+						testString(test);*/
+						
+						/**/
+						if(leftByte.compareTo(ackCntL) == 0 && rightByte.compareTo(ackCntR) == 0) {
+							//increment ack counter if correct block number received
+							if(ackCntR.intValue() == 255) {
+								ackCntL++;
+								ackCntR=1;
+							} else {
+								ackCntR++;
 							}
-						}else if(receivePacket.getData()[2]==ackCntL && receivePacket.getData()[3]==byteCheck1) {
+							
 							break;
 						} else {
-							System.out.println("Error cannot be handled this iteration");
+							System.out.println("Packet not as expected - error cannot be handled this iteration");
 							System.exit(1);
 						}
+						/**/
 					}
 				} catch (IOException e) {
 					System.out.println("No data received: Data lost.");
@@ -213,13 +239,17 @@ public class TFTPClient {
 		        	 e.printStackTrace();
 		        }
 				
+				Byte leftByte = new Byte(receivePacket.getData()[2]);
+				Byte rightByte = new Byte(receivePacket.getData()[3]);
+				
 				System.out.println("Client: Packet received from simulator.");
 		        System.out.println("From host: " + receivePacket.getAddress());
 		        System.out.println("Host port: " + receivePacket.getPort());
 		        len = receivePacket.getLength();
 		        System.out.println("Length: " + len);
+		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 		        System.out.println("Contents(bytes): " + msg);
-		        String contents = new String(msg,0,len);
+		        String contents = new String(msg,4,len);
 		        System.out.println("Contents(string): \n" + contents + "\n");
                 
 		        try {
@@ -250,6 +280,7 @@ public class TFTPClient {
 		        System.out.println("Destination host port: " + sendPacket.getPort());
 		        int packetLength = sendPacket.getLength();
 		        System.out.println("Length: " + packetLength);
+		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 		        System.out.println("Contents(bytes): " + ack);
 		        contents = new String(ack, 0, packetLength);
 		        System.out.println("Contents(string): " + contents + "\n");
@@ -284,6 +315,10 @@ public class TFTPClient {
 				if(len<DATA_SIZE) {
 					out.close();
 					System.out.println("#####  OPERATION COMPLETED.  #####" + "\n");
+					/*
+					 * IMPLEMENT RE-PROMPT FOR NEW FILE TRANSFER
+					 */
+					System.exit(1);
 					try {
 			             Thread.sleep(1000);
 			        } catch (InterruptedException e) {
@@ -360,7 +395,21 @@ public class TFTPClient {
 							System.exit(1);
 						}
 						*/
-						if(receivePacket.getData()[2] == ackCntL && receivePacket.getData()[3] == ackCntR) {
+						
+						//Get block number from received packet
+						Byte leftByte = new Byte(receivePacket.getData()[2]);
+						Byte rightByte = new Byte(receivePacket.getData()[3]);
+						
+						//If ack counter matches packet block number, continue, else break
+						if(leftByte.compareTo(ackCntL) == 0 && rightByte.compareTo(ackCntR) == 0) {
+							//increment ack counter if correct block number received
+							if(ackCntR.intValue() == 255) {
+								ackCntL++;
+								ackCntR=1;
+							} else {
+								ackCntR++;
+							}
+							
 							break;
 						} else {
 							System.out.println("Packet not as expected - error cannot be handled this iteration");
@@ -379,15 +428,27 @@ public class TFTPClient {
 		        	 e.printStackTrace();
 		        }
 				
+				Byte leftByte = new Byte(receivePacket.getData()[2]);
+				Byte rightByte = new Byte(receivePacket.getData()[3]);
+				String contents;
+				
 				System.out.println("Client: Packet received from simulator.");
 		        System.out.println("From host: " + receivePacket.getAddress());
 		        System.out.println("Host port: " + receivePacket.getPort());
 		        int packetLength = receivePacket.getLength();
 		        System.out.println("Length: " + packetLength);
+		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 		        System.out.println("Contents(bytes): " + msg);
-		        String contents = new String(msg,0,packetLength);
-		        System.out.println("Contents(string): " + contents + "\n");
-				
+		        if(packetLength > 4) {
+		        	// It is not an ACK packet
+		        	contents = new String(msg, 4, DATA_SIZE);
+		        	System.out.println("Contents(string): \n" + contents + "\n");
+		        }
+		        else {
+		        	// It is an ACK packet
+		        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+		        }
+		        
 		        try {
 		             Thread.sleep(500);
 		        } catch (InterruptedException e) {
@@ -415,9 +476,17 @@ public class TFTPClient {
 		        System.out.println("Destination host port: " + sendPacket.getPort());
 		        packetLength = sendPacket.getLength();
 		        System.out.println("Length: " + packetLength);
+		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 		        System.out.println("Contents(bytes): " + msg);
-		        contents = new String(msg, 0, packetLength);
-		        System.out.println("Contents(string): \n" + contents + "\n");
+		        if(packetLength > 4) {
+		        	// It is not an ACK packet
+		        	contents = new String(msg, 4, DATA_SIZE);
+		        	System.out.println("Contents(string): \n" + contents + "\n");
+		        }
+		        else {
+		        	// It is an ACK packet
+		        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+		        }
 				
 		        try {
 		             Thread.sleep(500);
@@ -430,7 +499,7 @@ public class TFTPClient {
 				} catch (IOException e){
 					e.printStackTrace();
 					System.exit(1);
-			}
+				}
 				
 		} while (len==DATA_SIZE);
 			if(len<DATA_SIZE) {
@@ -448,6 +517,9 @@ public class TFTPClient {
 	public static void main(String args[])
 	{
 		TFTPClient c = new TFTPClient();
-		c.run();
+		Scanner re = new Scanner(System.in);
+		for(;;) {
+			c.runClient(re);
+		}
 	}
 }

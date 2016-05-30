@@ -16,6 +16,11 @@ public class TFTPServerThread implements Runnable
 	private Request req;
 	private String errMsg;
 	private int port;
+
+	private boolean firstTime = true;
+	private String contents;
+	private Byte leftByte;
+	private Byte rightByte;
 	
 	public TFTPServerThread(DatagramPacket received)
 	{
@@ -303,11 +308,27 @@ public class TFTPServerThread implements Runnable
 			        System.out.println("To host: " + sendPacket.getAddress());
 			        System.out.println("Destination host port: " + sendPacket.getPort());
 			        len = sendPacket.getLength();
-			        System.out.println("Length: " + len);
-			        System.out.println("Contents(bytes): " + ack);
-			        String contents = new String(ack,0,len);
-			        System.out.println("Contents(string): " + contents + "\n");
-					
+			        System.out.println("Length: " + len);			        
+			        if(firstTime) {
+						// Do nothing
+			        	firstTime = false;
+			        }
+				    else {
+				    	System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+				    }
+			        
+				    System.out.println("Contents(bytes): " + ack);
+				    
+				    if(len > 4) {
+				    	// It is not an ACK packet
+				    	contents = new String(ack, 4, DATA_SIZE);
+				    	System.out.println("Contents(string): \n" + contents + "\n");
+				    }
+				    else {
+				    	// It is an ACK packet
+				    	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+				    }
+			        
 			        try {
 			             Thread.sleep(500);
 			        } catch (InterruptedException e) {
@@ -345,6 +366,10 @@ public class TFTPServerThread implements Runnable
 					System.exit(1);
 				}
 				
+				leftByte = new Byte(receivedPacket.getData()[2]);
+				rightByte = new Byte(receivedPacket.getData()[3]);
+				
+				/*
 				//  re-send the data if it has the wrong port 
 				while(receivedPacket.getData()[1] == 5) {
 					if(receivedPacket.getData()[3] == 4) {
@@ -353,7 +378,7 @@ public class TFTPServerThread implements Runnable
 						Socket.send(sendPacket);
 					}
 				}
-							
+				*/
 				// check for error 4
 				/*if(receivedPacket.getData()[0] != 0 || receivedPacket.getData()[1] != 3 ||
 						receivedPacket.getData()[2] != blocknum1  || receivedPacket.getData()[3] !=blocknum2) {
@@ -366,10 +391,24 @@ public class TFTPServerThread implements Runnable
 		        System.out.println("Host port: " + receivedPacket.getPort());
 		        len = receivedPacket.getLength();
 		        System.out.println("Length: " + len);
-		        System.out.println("Contents(bytes): " + msg);
-		        contents = new String(msg,0,len);
-		        System.out.println("Contents(string): \n" + contents + "\n");
-		        
+			    System.out.println("Contents(bytes): " + msg);
+			    if(firstTime) {
+			    	// filename and mode
+			    	contents = new String(msg, 0, msg.length);
+			    	System.out.println("Contents(string): \n" + contents + "\n");
+			    }
+			    else {
+			    	if(len > 4) {
+			    		// It is not an ACK packet
+			    		contents = new String(msg, 4, DATA_SIZE);
+			    		System.out.println("Contents(string): \n" + contents + "\n");
+			    	}
+			    	else {
+			    		// It is an ACK packet
+			    		System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+			    	}
+			    }
+
 		        try {
 		             Thread.sleep(500);
 		        } catch (InterruptedException e) {
