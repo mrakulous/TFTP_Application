@@ -1,5 +1,3 @@
-package project;
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -274,7 +272,7 @@ public class TFTPServerThread implements Runnable
 	public void write() {
 		
 		Byte blocknum1= new Byte((byte) 0);
-		Byte blocknum2= new Byte((byte) 0);
+		Byte blocknum2= new Byte((byte) 1);
    		
 		try {
 			// The file to get the data from.
@@ -346,21 +344,11 @@ public class TFTPServerThread implements Runnable
 				    	// It is an ACK packet
 				    	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 				    }
-			        
-			        try {
-			             Thread.sleep(500);
-			        } catch (InterruptedException e) {
-			        	 e.printStackTrace();
-			        }
+
 			        
 			        System.out.println("Server: Waiting for packet from simulator............" + "\n");
 			        
-			        try {
-			             Thread.sleep(500);
-			        } catch (InterruptedException e) {
-			        	 e.printStackTrace();
-			        }
-			        
+
 					try {
 						Socket.send(sendPacket);
 					} catch (IOException e){
@@ -433,11 +421,6 @@ public class TFTPServerThread implements Runnable
 			    	}
 			    }
 
-		        try {
-		             Thread.sleep(500);
-		        } catch (InterruptedException e) {
-		        	 e.printStackTrace();
-		        }
                 
 				System.arraycopy(receivedPacket.getData(), 4, data, 0, receivedPacket.getLength()-4);
                 

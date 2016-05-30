@@ -1,5 +1,3 @@
-package project;
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -84,12 +82,6 @@ public class Sim {
 	        }
         }
 
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
 		int sport = 69;
 		if(data[1] == 1|| data[1] == 2){
 			sport = 69;
@@ -99,32 +91,6 @@ public class Sim {
 
 		sendPacket = new DatagramPacket(data, len,
 				receivePacket.getAddress(), sport);
-
-		if(cmd!=0) {
-			byte[] currentBlock = null;
-			System.arraycopy(data, 2, currentBlock, 0, 2);
-			if(blockNum == java.nio.ByteBuffer.wrap(currentBlock).getInt() && data[1] == (byte)packetType){
-				if(cmd == 1){
-					try {
-						duplicate();
-					} catch (SocketException e) {
-						e.printStackTrace();
-					}
-				} else if(cmd ==2){
-					try {
-						delay();
-					} catch (SocketException e) {
-						e.printStackTrace();
-					}
-				} else {
-					try {
-    				   lost();
-					} catch (UnknownHostException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-        	}
 
 		System.out.println("Simulator: Sending packet to server.");
 		System.out.println("To host: " + sendPacket.getAddress());
@@ -156,19 +122,10 @@ public class Sim {
 	        }
         }
 
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 
 		System.out.println("Simulator: Waiting for packet from server............" + "\n");
 
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+
 
 		try {
 			sendReceiveSocket.send(sendPacket);
@@ -208,11 +165,6 @@ public class Sim {
         	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
         }
 
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 
 		sendPacket = new DatagramPacket(data, receivePacket.getLength(),
 		      receivePacket.getAddress(), clientPort);
@@ -220,7 +172,7 @@ public class Sim {
 		if(cmd!=0) {
 			byte[] currentBlock = null;
 			System.arraycopy(data, 2, currentBlock, 0, 2);
-			if(blockNum == java.nio.ByteBuffer.wrap(currentBlock).getInt() && data[1] == (byte)packetType){
+			if(blockNum == java.nio.ByteBuffer.wrap(currentBlock).getInt() && data[1] == packetType){
 				if(cmd == 1){
 					try {
 						duplicate();
@@ -241,7 +193,7 @@ public class Sim {
 					}
 				}
 			}
-        	}
+        }
 
 		System.out.println("Simulator: Sending packet to client.");
 		System.out.println("To host: " + sendPacket.getAddress());
@@ -267,11 +219,7 @@ public class Sim {
 			System.exit(1);
 		}
 
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+
 
 		try {
 			sendSocket.send(sendPacket);
@@ -283,6 +231,7 @@ public class Sim {
 	}
 
 	private static int parsePacketType() {
+		int packetType;
 		re = new Scanner(System.in);
 
 		while (true) {
@@ -293,7 +242,7 @@ public class Sim {
 
 			   //if not valid option, give error msg and give options again
 			   if(packetType > 0 && packetType <= 4) {
-				   break;
+				   return packetType;
 			   } else {
 				   System.out.println("Please enter a valid option");
 			   }
@@ -301,7 +250,6 @@ public class Sim {
 			   System.out.println("Please enter a valid option.");
 		   }
 	   }
-	   return packetType;
    }
 
    public void duplicate () throws SocketException {
@@ -343,7 +291,6 @@ public class Sim {
 				System.out.println("Please enter a valid option.");
 			}
 		}
-
 		if (cmd!=0){
 			//parse error type
 			packetType = parsePacketType();
@@ -351,7 +298,7 @@ public class Sim {
 			//if data or ack or lost, enter which block number you'd like to interrupt
 			while(true) {
 				try {
-					System.out.print("Enter the block number of the data packet ");
+					System.out.print("Enter the block number of the data packet: ");
 					int block = Integer.parseInt(re.nextLine());
 					blockNum = (byte) block;
 					break;
@@ -361,16 +308,22 @@ public class Sim {
 			}// end while
 
 			if(cmd!=3){
+				// Either [1]Duplicate [2]Delay
 			   while(true) {
 					try {
-						if(cmd == 1){
-							System.out.print("Enter the time in seconds between the first and second packets ");
-						} else {
-							System.out.print("Enter the time in seconds to delay the packet ");
+						if (cmd==1){
+							break;
 						}
-						time = Integer.parseInt(re.nextLine());
-						time = time *1000;
-						break;
+						else {
+							if(cmd == 2){
+								System.out.print("Enter the time in seconds between the first and second packets ");
+							} else {
+								System.out.print("Enter the time in seconds to delay the packet ");
+							}
+							time = Integer.parseInt(re.nextLine());
+							time = time *1000;
+							break;
+						}
 					} catch(NumberFormatException e) {
 						System.out.println("Please enter a valid option");
 					}

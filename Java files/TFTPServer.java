@@ -1,5 +1,3 @@
-package project;
-
 // TFTPServer.java 
 // This class is the server side of a simple TFTP server based on
 // UDP/IP. The server receives a read or write packet from a client and
@@ -85,12 +83,7 @@ public class TFTPServer {
 	    		 System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 	    	 }
 	     }
-	     
-	     try {
-             Thread.sleep(500);
-         } catch (InterruptedException e) {
-        	 e.printStackTrace();
-         }
+
 	     
          TFTPServerThread st = new TFTPServerThread(receivePacket);
          se = new Thread(st);
