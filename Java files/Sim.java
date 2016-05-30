@@ -257,7 +257,6 @@ public class Sim {
 	}
 
 	private static int parsePacketType() {
-		int packetType;
 		re = new Scanner(System.in);
 
 		while (true) {
