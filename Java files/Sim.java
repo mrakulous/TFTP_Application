@@ -1,3 +1,5 @@
+package project;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -11,17 +13,17 @@ public class Sim {
 	private byte[] data;
 	private static Scanner re;
 	private static int time;
-   
+
 	private byte[] dataSer;
 	public static final int MAC_SOCKET = 2300;
 	public static final int WIN_SOCKET = 23;
 	private int serverPort = 0;
-	
+
 	public static final int DATA_SIZE = 512;
 	public static final int TOTAL_SIZE = DATA_SIZE+4;
 	public boolean firstTime = true;
-   
-	public Sim() {	      
+
+	public Sim() {
 		try {
 			receiveSocket = new DatagramSocket(WIN_SOCKET);
 			sendReceiveSocket = new DatagramSocket();
@@ -32,14 +34,15 @@ public class Sim {
    }
 
 	public void receiveAndSendTFTP(){
-		int clientPort, j=0, len; 
+
+		int clientPort, j=0, len;
 		String contents;
 		Byte leftByte;
 		Byte rightByte;
-      
+
 		data = new byte[TOTAL_SIZE];
 		receivePacket = new DatagramPacket(data, data.length);
-      
+
 		System.out.println("Simulator: Waiting for packet from client............" + "\n");
 		try {
 			receiveSocket.receive(receivePacket);
@@ -47,10 +50,10 @@ public class Sim {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		
+
 		leftByte = new Byte(receivePacket.getData()[2]);
 		rightByte = new Byte(receivePacket.getData()[3]);
-       
+
 		System.out.println("Simulator: Packet received from client.");
 		System.out.println("From host: " + receivePacket.getAddress());
 		clientPort = receivePacket.getPort();
@@ -80,23 +83,23 @@ public class Sim {
 	        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 	        }
         }
-       
+
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-       
+
 		int sport = 69;
 		if(data[1] == 1|| data[1] == 2){
 			sport = 69;
 		} else {
 			sport = serverPort;
 		}
-       
+
 		sendPacket = new DatagramPacket(data, len,
 				receivePacket.getAddress(), sport);
-       
+
 		System.out.println("Simulator: Sending packet to server.");
 		System.out.println("To host: " + sendPacket.getAddress());
 		System.out.println("Destination host port: " + sendPacket.getPort());
@@ -126,41 +129,41 @@ public class Sim {
 	        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 	        }
         }
-		
+
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
+
 		System.out.println("Simulator: Waiting for packet from server............" + "\n");
-		
+
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
+
 		try {
 			sendReceiveSocket.send(sendPacket);
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		
+
 		receivePacket = new DatagramPacket(data, data.length);
 		//System.out.println("################### " + );
-		
+
 		try {
 			sendReceiveSocket.receive(receivePacket);
 		} catch(IOException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		
+
 		leftByte = new Byte(receivePacket.getData()[2]);
 		rightByte = new Byte(receivePacket.getData()[3]);
-		
+
 		System.out.println("Simulator: Packet received from server.");
 		System.out.println("From host: " + receivePacket.getAddress());
 		serverPort = receivePacket.getPort();
@@ -178,16 +181,16 @@ public class Sim {
         	// It is an ACK packet
         	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
         }
-		
+
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
+
 		sendPacket = new DatagramPacket(data, receivePacket.getLength(),
 		      receivePacket.getAddress(), clientPort);
-		
+
 		if(cmd!=0) {
 			byte[] currentBlock = null;
 			System.arraycopy(data, 2, currentBlock, 0, 2);
@@ -213,7 +216,7 @@ public class Sim {
 				}
 			}
         }
-		
+
 		System.out.println("Simulator: Sending packet to client.");
 		System.out.println("To host: " + sendPacket.getAddress());
 		System.out.println("Destination host port: " + sendPacket.getPort());
@@ -230,20 +233,20 @@ public class Sim {
         	// It is an ACK packet
         	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
         }
-		
+
 		try {
 			sendSocket = new DatagramSocket();
 		} catch (SocketException se) {
 			se.printStackTrace();
 			System.exit(1);
 		}
-		
+
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
+
 		try {
 			sendSocket.send(sendPacket);
 		} catch (IOException e) {
@@ -251,22 +254,21 @@ public class Sim {
 			System.exit(1);
 		}
 		sendSocket.close();
-       
 	}
-   
+
 	private static int parsePacketType() {
-		int pType = 0;
+		int packetType;
 		re = new Scanner(System.in);
-	   
+
 		while (true) {
 			try {
 				System.out.println("Choose which packet you would like to cause an error: ");
-			   System.out.println("[1] RRQ, [2] WRQ, [3] DATA [4] ACK: ");
+			   System.out.print("[1] RRQ, [2] WRQ, [3] DATA [4] ACK: ");
 			   packetType = Integer.parseInt(re.nextLine());//parse user input
-			   
+
 			   //if not valid option, give error msg and give options again
-			   if(pType > 0 && pType <= 4) {
-				   break;
+			   if(packetType > 0 && packetType <= 4) {
+				   return packetType;
 			   } else {
 				   System.out.println("Please enter a valid option");
 			   }
@@ -274,39 +276,37 @@ public class Sim {
 			   System.out.println("Please enter a valid option.");
 		   }
 	   }
-	   
-	   return pType;
-   	}
+   }
 
-   public void duplicate () throws SocketException { 
+   public void duplicate () throws SocketException {
 	   try {
 		   sendReceiveSocket.send(sendPacket);
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
-	   
-		sendReceiveSocket.setSoTimeout(time); 
-	    
+
+		sendReceiveSocket.setSoTimeout(time);
+
    } // end duplicate
-   
+
    private void delay() throws SocketException {
 	   sendReceiveSocket.setSoTimeout(time);
-    }// end delay 
-   
+    }// end delay
+
    	private void lost() throws UnknownHostException {
 	   byte[] ipAddr = new byte[] { 127, 0, 0, 1 };
        InetAddress addr = InetAddress.getByAddress(ipAddr);
-      
+
        losePacket =  new DatagramPacket (sendPacket.getData(),
     		   				data.length, addr, sendPacket.getPort());
   	}// end lost
-   
+
    	public static void function() {
    		cmd = 0;
 		re = new Scanner(System.in);
 		blockNum = -1;
-      
+
 		//choose error
 		while(true) {
 			try {
@@ -317,23 +317,23 @@ public class Sim {
 				System.out.println("Please enter a valid option.");
 			}
 		}
-      
+
 		if (cmd!=0){
 			//parse error type
 			packetType = parsePacketType();
-	      
+
 			//if data or ack or lost, enter which block number you'd like to interrupt
 			while(true) {
 				try {
 					System.out.print("Enter the block number of the data packet ");
 					int block = Integer.parseInt(re.nextLine());
 					blockNum = (byte) block;
-					break; 
+					break;
 				} catch(NumberFormatException e) {
 					System.out.println("Please enter a valid option");
 				}
-			}// end while 
-		   
+			}// end while
+
 			if(cmd!=3){
 			   while(true) {
 					try {
@@ -344,7 +344,7 @@ public class Sim {
 						}
 						time = Integer.parseInt(re.nextLine());
 						time = time *1000;
-						break; 
+						break;
 					} catch(NumberFormatException e) {
 						System.out.println("Please enter a valid option");
 					}
@@ -352,13 +352,16 @@ public class Sim {
 			}
       	}
    	}
-   	
+
    public static void main( String args[] )
    {
+	  boolean doneTransfer = true;
+	  int count=0;
+
       Sim s = new Sim();
       function();
       for(;;){
-    	  s.receiveAndSendTFTP();
+    	 s.receiveAndSendTFTP();
       }
    }
 }

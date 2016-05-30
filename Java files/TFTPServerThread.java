@@ -1,3 +1,5 @@
+package project;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -108,12 +110,15 @@ public class TFTPServerThread implements Runnable
 	 */
 	 public void read() {
 		 
-		byte blocknum1=0;
-		byte blocknum2=1;
+		Byte blocknum1= new Byte((byte) 0);
+		Byte blocknum2= new Byte ((byte) 1);
+		Byte ackByte1;
+		Byte ackByte2;
 		int len;
 		DatagramPacket receivePacket;
 		
 		try {
+			//read in file
 			BufferedInputStream in = new BufferedInputStream(new FileInputStream(filename));
 			do {
 				byte[] msg = new byte[TOTAL_SIZE];
@@ -177,11 +182,12 @@ public class TFTPServerThread implements Runnable
 				
 				sendPacket = new DatagramPacket(msg, len+4, receivedPacket.getAddress(), receivedPacket.getPort());
 				
-				System.out.println("Server: Sending packet to simulator.");
+				System.out.println("Server: Sending DATA packet to simulator.");
 		        System.out.println("To host: " + sendPacket.getAddress());
 		        System.out.println("Destination host port: " + sendPacket.getPort());
 		        int packetLength = sendPacket.getLength();
 		        System.out.println("Length: " + packetLength);
+		        System.out.println("Block Number: " + blocknum1.toString() + blocknum2.toString());
 		        System.out.println("Contents(bytes): " + msg);
 		        String contents = new String(msg,0,packetLength);
 		        System.out.println("Contents(string): \n" + contents + "\n");
@@ -207,10 +213,17 @@ public class TFTPServerThread implements Runnable
 					System.exit(1);
 				}
 		        
-				if(blocknum2 == 255){
-					blocknum1++;
+				if(blocknum1 < 256) {
+					if(blocknum2 == 255){
+						blocknum1++;
+						blocknum2 = 0;
+					} else {
+						blocknum2++;
+					}
+				} else {
+					System.out.println("You have reached the maximum memory limit.  Aborting...");
+					System.exit(1);
 				}
-				blocknum2++;
 			    
 				// check for error 4
 				/*if(receivedPacket.getData()[0] != 0 || receivedPacket.getData()[1] != 3 ||
@@ -228,11 +241,16 @@ public class TFTPServerThread implements Runnable
 					System.exit(1);
 				}
 
-		        System.out.println("Server: Packet received from simulator.");
+				//get block number of ack packet
+				ackByte1 = new Byte(receivedPacket.getData()[2]);
+				ackByte2 = new Byte(receivedPacket.getData()[3]);
+				
+		        System.out.println("Server: ACK Packet received from simulator.");
 		        System.out.println("From host: " + receivedPacket.getAddress());
 		        System.out.println("Host port: " + receivedPacket.getPort());
 		        packetLength = receivedPacket.getLength();
 		        System.out.println("Length: " + packetLength);
+		        System.out.println("Block Number: " + ackByte1.toString() + ackByte2.toString());
 		        System.out.println("Contents(bytes): " + msg);
 		        contents = new String(msg,0,packetLength);
 		        System.out.println("Contents(string): \n" + contents + "\n");
@@ -255,8 +273,8 @@ public class TFTPServerThread implements Runnable
 	*/
 	public void write() {
 		
-		byte blocknum1=0;
-		byte blocknum2=0;
+		Byte blocknum1= new Byte((byte) 0);
+		Byte blocknum2= new Byte((byte) 1);
    		
 		try {
 			// The file to get the data from.
@@ -304,11 +322,11 @@ public class TFTPServerThread implements Runnable
 				
 					sendPacket = new DatagramPacket(ack, ack.length, receivedPacket.getAddress(), receivedPacket.getPort());
 					
-					System.out.println("Server: Sending packet to simulator.");
+					System.out.println("Server: Sending ACK packet to simulator.");
 			        System.out.println("To host: " + sendPacket.getAddress());
 			        System.out.println("Destination host port: " + sendPacket.getPort());
 			        len = sendPacket.getLength();
-			        System.out.println("Length: " + len);			        
+			        System.out.println("Length: " + len);
 			        if(firstTime) {
 						// Do nothing
 			        	firstTime = false;
@@ -351,11 +369,17 @@ public class TFTPServerThread implements Runnable
 					}
 				//} end check port
                 
-				if(blocknum2 == 255) {
-					blocknum1++;
-				}
-				
-				blocknum2++;
+					if(blocknum1 < 256) {
+						if(blocknum2 == 255){
+							blocknum1++;
+							blocknum2 = 0;
+						} else {
+							blocknum2++;
+						}
+					} else {
+						System.out.println("You have reached the maximum memory limit.  Aborting...");
+						System.exit(1);
+					}
 				
 				receivedPacket = new DatagramPacket(msg, msg.length);
 				
@@ -386,7 +410,7 @@ public class TFTPServerThread implements Runnable
 					formErrPacket (error4 ); 
 				}*/
 				
-				System.out.println("Server: Packet received from simulator.");
+				System.out.println("Server: DATA Packet received from simulator.");
 		        System.out.println("From host: " + receivedPacket.getAddress());
 		        System.out.println("Host port: " + receivedPacket.getPort());
 		        len = receivedPacket.getLength();

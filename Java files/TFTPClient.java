@@ -1,3 +1,5 @@
+package project;
+
 // TFTPClient.java
 // This class is the client side for a very simple assignment based on TFTP on
 // UDP/IP. The client uses one port and sends a read or write request and gets 
@@ -21,7 +23,7 @@ public class TFTPClient {
 	private String contents;
 
 	private Byte ackCntL=0;
-	private Byte ackCntR=0;//starting byte
+	private Byte ackCntR=1;//starting byte
 	private static final int TIMEOUT = 50000;
 	private static final int RETRANSMIT_TIME = 25000;
 	
@@ -162,7 +164,7 @@ public class TFTPClient {
    	{
    		Byte blocknum1=0;
 		Byte blocknum2=1;
-		ackCntR++;
+		//ackCntR++;
 		
 		try {
 			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("read.txt"));
@@ -242,14 +244,14 @@ public class TFTPClient {
 				Byte leftByte = new Byte(receivePacket.getData()[2]);
 				Byte rightByte = new Byte(receivePacket.getData()[3]);
 				
-				System.out.println("Client: Packet received from simulator.");
+				System.out.println("Client: DATA Packet received from simulator.");
 		        System.out.println("From host: " + receivePacket.getAddress());
 		        System.out.println("Host port: " + receivePacket.getPort());
 		        len = receivePacket.getLength();
 		        System.out.println("Length: " + len);
 		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 		        System.out.println("Contents(bytes): " + msg);
-		        String contents = new String(msg,4,len);
+		        String contents = new String(msg,4,len-4);
 		        System.out.println("Contents(string): \n" + contents + "\n");
                 
 		        try {
@@ -275,7 +277,7 @@ public class TFTPClient {
 
 				sendPacket = new DatagramPacket(ack, ack.length, InetAddress.getLocalHost(), 23);
 				
-				System.out.println("Client: Sending packet to simulator.");
+				System.out.println("Client: Sending ACK packet to simulator.");
 		        System.out.println("To host: " + sendPacket.getAddress());
 		        System.out.println("Destination host port: " + sendPacket.getPort());
 		        int packetLength = sendPacket.getLength();
@@ -340,8 +342,8 @@ public class TFTPClient {
    	
 	public void write() {
 		
-		byte blocknum1=0;
-		byte blocknum2=1;
+		Byte blocknum1= new Byte((byte)0);
+		Byte blocknum2= new Byte((byte)1);//first block sent
 		int len;
 		
 		try {
@@ -396,7 +398,7 @@ public class TFTPClient {
 						}
 						*/
 						
-						//Get block number from received packet
+						//Get block number from received packet to compare
 						Byte leftByte = new Byte(receivePacket.getData()[2]);
 						Byte rightByte = new Byte(receivePacket.getData()[3]);
 						
@@ -415,7 +417,8 @@ public class TFTPClient {
 							System.out.println("Packet not as expected - error cannot be handled this iteration");
 							System.exit(1);
 						}
-					}
+					}//end for
+					
 				} catch (IOException e) {
 					System.out.println("No data received: Data lost.");
 					System.out.println("Shutting down.");
@@ -455,10 +458,18 @@ public class TFTPClient {
 		        	 e.printStackTrace();
 		        }
 		        
-				if(blocknum2 == 255) {
-					blocknum1++;
-				}
-				blocknum2++;
+		        if (blocknum1 < 256) {
+					if(blocknum2 == 255) {
+						blocknum1++;
+						blocknum2 = 0;
+					} else {
+						blocknum2++;
+					}
+		        } else {
+		        	System.out.println("Maximum memory reached.  Aborting...");
+		        	System.exit(1);
+		        }
+					
 				
 				len = in.read(data);
 				
@@ -521,5 +532,9 @@ public class TFTPClient {
 		for(;;) {
 			c.runClient(re);
 		}
+	}
+	
+	private void testString(String n) {
+		System.out.println(n);
 	}
 }
