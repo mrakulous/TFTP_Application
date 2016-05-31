@@ -232,9 +232,6 @@ public class TFTPServerThread implements Runnable
 					System.out.println("You have reached the maximum memory limit.  Aborting...");
 					System.exit(1);
 				}
-			    
-		        
-		        System.out.println("Server: Waiting for packet from simulator............" + "\n");
 		        
 				// check for error 4
 				/*if(receivedPacket.getData()[0] != 0 || receivedPacket.getData()[1] != 3 ||
