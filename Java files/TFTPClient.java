@@ -78,7 +78,7 @@ public class TFTPClient {
    		//read in filename
    		while(true) {
 			try {
-				System.out.print("Enter the file you would like to " + req.toString() +":");
+				System.out.print("Enter the file you would like to " + req.toString() +": ");
 				filename = re.nextLine();
 				//workingDir = System.getProperty("user.dir");
 				//filepath = workingDir + "\\" + filename;
@@ -287,7 +287,8 @@ public class TFTPClient {
 		      //System.arraycopy(src, srcLoc, dest, destLoc, len)
 				System.arraycopy(receivePacket.getData(), 4, data, 0, receivePacket.getLength()-4);
 
-			for(len = 4; len < data.length; len++) {
+				
+				for(len = 4; len < data.length; len++) {
 					if (data[len] == 0) break;
 				}
 
@@ -308,14 +309,24 @@ public class TFTPClient {
 		        System.out.println("Packet Length: " + packetLength);
 		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 		        System.out.println("Contents(bytes): " + ack);
-		        contents = new String(ack, 0, packetLength);
-		        System.out.println("Contents(string): " + contents + "\n");
+		        
+		        if(packetLength > 4) {
+		        	// It is not an ACK packet
+		        	contents = new String(ack, 4, DATA_SIZE);
+		        	System.out.println("Contents(string): \n" + contents + "\n");
+		        }
+		        else {
+		        	// It is an ACK packet
+		        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+		        }
 		        
 		        try {
 		             Thread.sleep(500);
 		        } catch (InterruptedException e) {
 		        	 e.printStackTrace();
 		        }
+		        
+		        System.out.println("Client: Waiting for packet from simulator............" + "\n");
 		        
 		        try {
 		             Thread.sleep(500);
@@ -334,27 +345,21 @@ public class TFTPClient {
 				//if this is he last data packet, end
 				if(len<DATA_SIZE) {
 					out.close();
+					
+					try {
+			             Thread.sleep(2500);
+			        } catch (InterruptedException e) {
+			        	 e.printStackTrace();
+			        }
+					
 					System.out.println("#####  OPERATION COMPLETED.  #####" + "\n");
 					/*
 					 * IMPLEMENT RE-PROMPT FOR NEW FILE TRANSFER
 					 */
 					System.exit(1);
-					try {
-			             Thread.sleep(1000);
-			        } catch (InterruptedException e) {
-			        	 e.printStackTrace();
-			        }
 					break;
 				}
 			
-		        System.out.println("Client: Waiting for packet from simulator............" + "\n");
-				
-				try {
-		             Thread.sleep(500);
-		        } catch (InterruptedException e) {
-		        	 e.printStackTrace();
-		        }
-				
 				if(blocknum2 == 255) {
 					blocknum1++;
 				}
