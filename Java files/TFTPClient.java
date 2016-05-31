@@ -1,5 +1,3 @@
-package project;
-
 // TFTPClient.java
 // This class is the client side for a very simple assignment based on TFTP on
 // UDP/IP. The client uses one port and sends a read or write request and gets 
@@ -22,7 +20,6 @@ public class TFTPClient {
 	
 	private static final int DATA_PACKET = 3;
 	private static final int ACK_PACKET = 4;
-	
 	
 	private static final int TIMEOUT = 50000;
 	private static final int RETRANSMIT_TIME = 25000;
@@ -195,7 +192,7 @@ public class TFTPClient {
    	{
    		String filepath = fp;
    		Byte blocknum1=0;
-		Byte blocknum2=0;
+		Byte blocknum2=1;
 		ackCntL = 0;
 		ackCntR = 1;//we are starting our read ack counter at 1
 		
@@ -246,7 +243,6 @@ public class TFTPClient {
 								}
 							} else {
 								System.out.println("File too big, exiting program.");
-								System.exit(1);
 							}
 							
 							break;
@@ -300,7 +296,7 @@ public class TFTPClient {
 
 				byte[] ack = new byte[4];
 				ack[0] = 0;
-				ack[1] = 4;
+				ack[1] = ACK_PACKET;
 				ack[2] = blocknum1;
 				ack[3] = blocknum2;
 
@@ -313,7 +309,7 @@ public class TFTPClient {
 		        System.out.println("Packet Length: " + packetLength);
 		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 		        System.out.println("Contents(bytes): " + ack);
-		        contents = new String(ack, 0, ack.length);
+		        contents = new String(ack, 0, packetLength);
 		        System.out.println("Contents(string): " + contents + "\n");
 		        
 		        try {
@@ -360,16 +356,10 @@ public class TFTPClient {
 		        	 e.printStackTrace();
 		        }
 				
-				if(blocknum1 <256) {
-					if(blocknum2 == 255) {
-						blocknum1++;
-						blocknum2 = 0;
-					} else {
-						blocknum2++;
-					}
-				} else {
-					System.out.println("Memory limit reached.  Program aborted.");
+				if(blocknum2 == 255) {
+					blocknum1++;
 				}
+				blocknum2++;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -377,11 +367,11 @@ public class TFTPClient {
 		}
 	}
    	
-	public void write(String fp) {
+public void write(String fp) {
 		
 		String filepath = fp;
 		Byte blocknum1= new Byte((byte)0);
-		Byte blocknum2= new Byte((byte)1);//first block sent
+		Byte blocknum2= new Byte((byte)0);//first block sent
 		ackCntL = 0;
 		ackCntR = 0;//start ack counter at 0
 		int len, dataCheck;
@@ -529,7 +519,7 @@ public class TFTPClient {
 		        System.out.println("Destination host port: " + sendPacket.getPort());
 		        packetLength = sendPacket.getLength();
 		        System.out.println("Packet Length: " + packetLength);
-		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+		        System.out.println("Block Number: " + blocknum1.toString() + blocknum2.toString());
 		        System.out.println("Contents(bytes): " + msg);
 		        if(packetLength > 4) {
 		        	// It is not an ACK packet
