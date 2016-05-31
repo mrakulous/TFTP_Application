@@ -287,12 +287,11 @@ public class TFTPClient {
 		      //System.arraycopy(src, srcLoc, dest, destLoc, len)
 				System.arraycopy(receivePacket.getData(), 4, data, 0, receivePacket.getLength()-4);
 
-				/*
-				for(int i = 0; i < data.length; i++) {
-					if (data[i] == 0) break;
-				}*/
+			for(len = 4; len < data.length; len++) {
+					if (data[len] == 0) break;
+				}
 
-				out.write(data,0,data.length);
+				out.write(data,0,len);
 
 				byte[] ack = new byte[4];
 				ack[0] = 0;
