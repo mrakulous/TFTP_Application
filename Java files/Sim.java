@@ -67,7 +67,7 @@ public class Sim {
         System.out.println("Contents(bytes): " + data);
         if(firstTime) {
         	// filename and mode
-        	contents = new String(data, 2, 17);
+        	contents = new String(data, 2, DATA_SIZE);
         	System.out.println("Contents(string): \n" + contents + "\n");
         }
         else {
@@ -88,15 +88,15 @@ public class Sim {
 			e.printStackTrace();
 		}
 
-		int sport = 69;
+		int Serport = 69;
 		if(data[1] == 1|| data[1] == 2){
-			sport = 69;
+			Serport = 69;
 		} else {
-			sport = serverPort;
+			Serport = serverPort;
 		}
 
 		sendPacket = new DatagramPacket(data, len,
-				receivePacket.getAddress(), sport);
+				receivePacket.getAddress(), Serport);
 		
 		if(cmd!=0) {
 			byte[] currentBlock = new byte[2];
@@ -141,7 +141,7 @@ public class Sim {
         System.out.println("Contents(bytes): " + data);
         if(firstTime) {
         	// filename and mode
-        	contents = new String(data, 2, 17);
+        	contents = new String(data, 2, DATA_SIZE);
         	System.out.println("Contents(string): \n" + contents + "\n");
         	firstTime = false;
         }
@@ -179,7 +179,6 @@ public class Sim {
 		}
 
 		receivePacket = new DatagramPacket(data, data.length);
-		//System.out.println("################### " + );
 
 		try {
 			sendReceiveSocket.receive(receivePacket);
@@ -318,7 +317,7 @@ public class Sim {
 		//choose error
 		while(true) {
 			try {
-				System.out.print("[0] Normal, [1] Duplicate [2] Delay [3] Lost: ");
+				System.out.print("[0]Normal  [1]Duplicate  [2]Delay  [3]Lost: ");
 				cmd = Integer.parseInt(re.nextLine());
 				if (cmd >= 0 && cmd <= 3) break ;//If valid command, move on
 			} catch (NumberFormatException e) {
@@ -336,7 +335,7 @@ public class Sim {
 					if(packetType == 1 || packetType == 2){
 						break;
 					}
-					System.out.print("Enter the block number of the data packet ");
+					System.out.print("Block number of the data packet: ");
 					int block = Integer.parseInt(re.nextLine());
 					blockNum = (byte) block;
 					break;
@@ -348,12 +347,15 @@ public class Sim {
 		   while(true) {
 				try {
 					if(cmd==3){
+						// User wants lost
 						break;
 					}
 					if(cmd == 1){
-						System.out.print("Enter the time in seconds between the first and second packets ");
+						// User wants duplicate
+						System.out.print("Delay between first,second packets (seconds): ");
 					} else {
-						System.out.print("Enter the time in seconds to delay the packet ");
+						// User wants delay
+						System.out.print("Delay for the packet (seconds): ");
 					}
 					time = Integer.parseInt(re.nextLine());
 					time = time *1000;
@@ -371,8 +373,8 @@ public class Sim {
 
 		while (true) {
 			try {
-				System.out.println("Choose which packet you would like to cause an error: ");
-			   System.out.print("[1] RRQ, [2] WRQ, [3] DATA [4] ACK: ");
+				System.out.println("Pick a packet for the error.");
+			   System.out.print("[1]RRQ  [2]WRQ  [3]DATA  [4]ACK: ");
 			   packetType = Integer.parseInt(re.nextLine());//parse user input
 
 			   //if not valid option, give error msg and give options again
