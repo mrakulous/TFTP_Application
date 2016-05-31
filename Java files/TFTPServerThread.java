@@ -197,14 +197,17 @@ public class TFTPServerThread implements Runnable
 		        System.out.println("Length: " + packetLength);
 		        System.out.println("Block Number: " + blocknum1.toString() + blocknum2.toString());
 		        System.out.println("Contents(bytes): " + msg);
-		        String contents = new String(msg,0,packetLength);
-		        System.out.println("Contents(string): \n" + contents + "\n");
-		        
+		        String contents = new String(msg, 4, DATA_SIZE);
+			    System.out.println("Contents(string): \n" + contents + "\n");
+
 		        try {
 		             Thread.sleep(500);
 		        } catch (InterruptedException e) {
 		        	 e.printStackTrace();
 		        }
+		        
+		        System.out.println("Server: Waiting for packet from simulator............" + "\n");
+		        		        
 		        try {
 		             Thread.sleep(500);
 		        } catch (InterruptedException e) {
@@ -260,8 +263,13 @@ public class TFTPServerThread implements Runnable
 		        System.out.println("Packet Length: " + packetLength);
 		        System.out.println("Block Number: " + ackByte1.toString() + ackByte2.toString());
 		        System.out.println("Contents(bytes): " + msg);
-		        contents = new String(msg,0,packetLength);
-		        System.out.println("Contents(string): \n" + contents + "\n");
+		        System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+			    
+		        try {
+		             Thread.sleep(500);
+		        } catch (InterruptedException e) {
+		        	 e.printStackTrace();
+		        }
 		        
 			} while (len==DATA_SIZE);
 			if(len<DATA_SIZE) {
