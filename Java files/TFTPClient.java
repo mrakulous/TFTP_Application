@@ -21,8 +21,8 @@ public class TFTPClient {
 	private static final int DATA_PACKET = 3;
 	private static final int ACK_PACKET = 4;
 	
-	private static final int TIMEOUT = 50000;
-	private static final int RETRANSMIT_TIME = 25000;
+	private static final int TIMEOUT = 1000;
+	private static final int RETRANSMIT_TIME = 2000;
 	
 	//REQUEST AND MODE TYPES
 	public static enum Request { READ, WRITE, ERROR};
@@ -276,7 +276,7 @@ public class TFTPClient {
 		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 		        System.out.println("Contents(bytes): " + msg);
 		        String contents = new String(msg,4,len-4);
-		        System.out.println("Contents(string): " + contents + "\n");
+		        System.out.println("Contents(string): \n" + contents + "\n");
                 
 		        try {
 		             Thread.sleep(500);
