@@ -222,8 +222,8 @@ public class Sim {
 			byte[] currentBlock = new byte[2];
 			System.arraycopy(data, 2, currentBlock, 0, 2);
 			Byte firstBlock = new Byte (currentBlock[0]);
-			Byte secondBlock = new Byte (currentBlock[0]);
-			int correct = firstBlock.intValue()*10 + secondBlock.intValue() ;
+			Byte secondBlock = new Byte (currentBlock[1]);
+			Byte correct = (byte) (firstBlock.intValue()*10 + secondBlock.intValue());
 			if(blockNum == correct && data[1] == (byte)packetType){
 				if(cmd == 1){
 					try {
@@ -334,7 +334,6 @@ public class Sim {
 			while(true) {
 				try {
 					if(packetType == 1 || packetType == 2){
-						// RRQ and WRQ, so no block number, break.
 						break;
 					}
 					System.out.print("Enter the block number of the data packet ");
@@ -345,20 +344,26 @@ public class Sim {
 					System.out.println("Please enter a valid option");
 				}
 			}// end while
-			
-			if(cmd == 2){
-				while(true) {
-					try {
-						System.out.print("Time to delay packet (seconds): ");
-						time = Integer.parseInt(re.nextLine());
-						time = time *1000;
+
+		   while(true) {
+				try {
+					if(cmd==3){
 						break;
-					} catch(NumberFormatException e) {
-						System.out.println("Please enter a valid option");
 					}
+					if(cmd == 1){
+						System.out.print("Enter the time in seconds between the first and second packets ");
+					} else {
+						System.out.print("Enter the time in seconds to delay the packet ");
+					}
+					time = Integer.parseInt(re.nextLine());
+					time = time *1000;
+					break;
+				} catch(NumberFormatException e) {
+					System.out.println("Please enter a valid option");
 				}
-			}
-		}
+			}// end while
+			
+      	}
    	}
    	
    	private static int parsePacketType() {
