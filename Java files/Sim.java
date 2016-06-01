@@ -107,7 +107,12 @@ public class Sim {
 			System.arraycopy(data, 2, currentBlock, 0, 2);
 			Byte firstBlock = new Byte (currentBlock[0]);
 			Byte secondBlock = new Byte (currentBlock[1]);
-			Byte correct = (byte) (firstBlock.intValue()*10 + secondBlock.intValue()) ;
+			Byte correct = (byte) (firstBlock.intValue()*10 + secondBlock.intValue());
+			if(packetType == 1 || packetType ==2)
+			{
+				blockNum = correct;
+			}
+			
 			if(blockNum == correct && data[1] == (byte)packetType){
 				if(cmd==1){
 					try {
@@ -255,19 +260,25 @@ public class Sim {
 			e.printStackTrace();
 		}
 
+		/*
 		try {
 			sendSocket.send(sendPacket);
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
-		}
+		}*/
 		
 		if(cmd!=0) {
 			byte[] currentBlock = new byte[2];
 			System.arraycopy(data, 2, currentBlock, 0, 2);
 			Byte firstBlock = new Byte (currentBlock[0]);
 			Byte secondBlock = new Byte (currentBlock[1]);
-			Byte correct = (byte) (firstBlock.intValue()*10 + secondBlock.intValue()) ;
+			Byte correct = (byte) (firstBlock.intValue()*10 + secondBlock.intValue());
+			if(packetType == 1 || packetType ==2)
+			{
+				blockNum = correct;
+			}
+			
 			if(blockNum == correct && data[1] == (byte)packetType){
 				if(cmd == 1){
 					try {
@@ -292,7 +303,14 @@ public class Sim {
 					}
 				}
 			}
-        }
+        }//end if
+		
+		try {
+			sendSocket.send(sendPacket);
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
 		sendSocket.close();
 	}
 
@@ -430,7 +448,7 @@ public class Sim {
 	   }
 	   return packetType;
    }
-
+   	
    public static void main( String args[] )
    {
 	  boolean doneTransfer = true;
