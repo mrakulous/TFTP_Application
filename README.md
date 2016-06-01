@@ -44,7 +44,7 @@ Lost <br>
 
 <hr>
 
-<b> WRITE </b><br>
+<b> WRITE </b><br><br>
 
 Normal <br>
 * Single block, DATA
