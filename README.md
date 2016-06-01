@@ -12,8 +12,8 @@
 <b> READ </b><br><br>
 
 Normal <br>
-- [x] Single block [June 1, 5:51pm]
-- [x] Double block [June 1, 5:51pm]
+- [x] Single block [June 1, 6:32pm]
+- [x] Double block [June 1, 6:32pm]
 - [ ] 512 bytes
 - [ ] 132,000 bytes
 
@@ -28,8 +28,8 @@ Duplicate <br>
 - [ ] 132,000 bytes
 
 Delay <br>
-- [x] RRQ [June 1, 5:51pm]
-- [x] WRQ [June 1, 5:51pm]
+- [x] RRQ [June 1, 6:32pm]
+- [x] WRQ [June 1, 6:32pm]
 - [ ] Single block, DATA
 - [ ] Single block, ACK
 - [ ] Double block, DATA
