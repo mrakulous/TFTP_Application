@@ -5,6 +5,7 @@
 * Server shutdown
 * Continue transfer
 * Empty file
+* Timeout
 
 <hr>
 
