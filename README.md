@@ -1,38 +1,82 @@
 # Everything we need
 
-* Verbose vs Quiet
-* Error handling vs No Error Handling
-
-<br><b> General </b><br>
-* Empty file <br>
-* Single block <br>
-* Double block <br>
-* 512 bytes <br>
-* 132,000 bytes <br>
+* Verbose/Quiet
+* Error/NoError
+* Server shutdown
+* Continue transfer
+* Empty file
 
 <hr>
 
 <b> READ </b><br><br>
 
-<b> Normal </b><br>
+Normal <br>
+* Single block, DATA
+* Single block, ACK
+* Double block, DATA
+* Double block, ACK
+* 512 bytes (1 block) <br>
+* 132,000 bytes (255+ blocks) <br>
 
-<b> Duplicate </b><br>
+Duplicate <br>
+* Single block, DATA
+* Single block, ACK
+* Double block, DATA
+* Double block, ACK
+* 512 bytes (1 block) <br>
+* 132,000 bytes (255+ blocks) <br>
 
-<b> Delay </b><br>
+Delay <br>
+* Single block, DATA
+* Single block, ACK
+* Double block, DATA
+* Double block, ACK
+* 512 bytes (1 block) <br>
+* 132,000 bytes (255+ blocks) <br>
 
-<b> Lost </b><br><br>
+Lost <br><br>
+* Single block, DATA
+* Single block, ACK
+* Double block, DATA
+* Double block, ACK
+* 512 bytes (1 block) <br>
+* 132,000 bytes (255+ blocks) <br>
 
 <hr>
 
 <b> WRITE </b><br>
 
-<b> Normal </b><br>
+Normal <br>
+* Single block, DATA
+* Single block, ACK
+* Double block, DATA
+* Double block, ACK
+* 512 bytes (1 block) <br>
+* 132,000 bytes (255+ blocks) <br>
 
-<b> Duplicate </b><br>
+Duplicate <br>
+* Single block, DATA
+* Single block, ACK
+* Double block, DATA
+* Double block, ACK
+* 512 bytes (1 block) <br>
+* 132,000 bytes (255+ blocks) <br>
 
-<b> Delay </b><br>
+Delay <br>
+* Single block, DATA
+* Single block, ACK
+* Double block, DATA
+* Double block, ACK
+* 512 bytes (1 block) <br>
+* 132,000 bytes (255+ blocks) <br>
 
-<b> Lost </b><br><br>
+Lost <br><br>
+* Single block, DATA
+* Single block, ACK
+* Double block, DATA
+* Double block, ACK
+* 512 bytes (1 block) <br>
+* 132,000 bytes (255+ blocks) <br>
 
 <hr>
 
