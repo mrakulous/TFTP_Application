@@ -12,32 +12,42 @@
 <b> READ </b><br><br>
 
 Normal <br>
-* Single block, DATA
-* Single block, ACK
-* Double block, DATA
-* Double block, ACK
+* Single block
+* Double block
 * 512 bytes (1 block)
 * 132,000 bytes (255+ blocks)
 
 Duplicate <br>
+* Single block, RRQ
+* Single block, WRQ
 * Single block, DATA
 * Single block, ACK
+* Double block, RRQ
+* Double block, WRQ
 * Double block, DATA
 * Double block, ACK
 * 512 bytes (1 block)
 * 132,000 bytes (255+ blocks)
 
 Delay <br>
+* Single block, RRQ
+* Single block, WRQ
 * Single block, DATA
 * Single block, ACK
+* Double block, RRQ
+* Double block, WRQ
 * Double block, DATA
 * Double block, ACK
 * 512 bytes (1 block)
 * 132,000 bytes (255+ blocks)
 
 Lost <br>
+* Single block, RRQ
+* Single block, WRQ
 * Single block, DATA
 * Single block, ACK
+* Double block, RRQ
+* Double block, WRQ
 * Double block, DATA
 * Double block, ACK
 * 512 bytes (1 block)
@@ -48,32 +58,48 @@ Lost <br>
 <b> WRITE </b><br><br>
 
 Normal <br>
+* Single block, RRQ
+* Single block, WRQ
 * Single block, DATA
 * Single block, ACK
+* Double block, RRQ
+* Double block, WRQ
 * Double block, DATA
 * Double block, ACK
 * 512 bytes (1 block)
 * 132,000 bytes (255+ blocks)
 
 Duplicate <br>
+* Single block, RRQ
+* Single block, WRQ
 * Single block, DATA
 * Single block, ACK
+* Double block, RRQ
+* Double block, WRQ
 * Double block, DATA
 * Double block, ACK
 * 512 bytes (1 block)
 * 132,000 bytes (255+ blocks)
 
 Delay <br>
+* Single block, RRQ
+* Single block, WRQ
 * Single block, DATA
 * Single block, ACK
+* Double block, RRQ
+* Double block, WRQ
 * Double block, DATA
 * Double block, ACK
 * 512 bytes (1 block)
 * 132,000 bytes (255+ blocks)
 
 Lost <br>
+* Single block, RRQ
+* Single block, WRQ
 * Single block, DATA
 * Single block, ACK
+* Double block, RRQ
+* Double block, WRQ
 * Double block, DATA
 * Double block, ACK
 * 512 bytes (1 block)
