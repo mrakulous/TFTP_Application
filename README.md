@@ -1,3 +1,5 @@
+# Everything we need
+
 * Verbose vs Quiet
 * Error handling vs No Error Handling
 
