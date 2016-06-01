@@ -313,7 +313,7 @@ public class TFTPClient {
 						    
 					} else {
 						
-						if (leftByte == ackCntL.byteValue() && (rightByte)== ackCntR.byteValue()+1){
+						if (leftByte == ackCntL.byteValue() && rightByte== ackCntR.byteValue()+1){
 							for(len = 4; len < data.length; len++) {
 								if (data[len] == 0) break;
 							}
@@ -547,7 +547,9 @@ public void write(String fp) {
 					e.printStackTrace();
 					System.exit(1);
 				}
-				
+				if(in.read() == -1){
+					break;
+				}
 		} while (len==DATA_SIZE);
 			if(len<DATA_SIZE) {
 				in.close();
@@ -602,7 +604,7 @@ public void write(String fp) {
 		Request req = r;
 		if(req == Request.READ) {
 			ackCntL = 0;
-			ackCntR = 1;
+			ackCntR = 0;
 		} else if (req == Request.WRITE) {
 			ackCntL = 0;
 			ackCntR = 0;
