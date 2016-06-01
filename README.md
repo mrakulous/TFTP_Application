@@ -15,32 +15,32 @@ Normal <br>
 * Single block, ACK
 * Double block, DATA
 * Double block, ACK
-* 512 bytes (1 block) <br>
-* 132,000 bytes (255+ blocks) <br>
+* 512 bytes (1 block)
+* 132,000 bytes (255+ blocks)
 
 Duplicate <br>
 * Single block, DATA
 * Single block, ACK
 * Double block, DATA
 * Double block, ACK
-* 512 bytes (1 block) <br>
-* 132,000 bytes (255+ blocks) <br>
+* 512 bytes (1 block)
+* 132,000 bytes (255+ blocks)
 
 Delay <br>
 * Single block, DATA
 * Single block, ACK
 * Double block, DATA
 * Double block, ACK
-* 512 bytes (1 block) <br>
-* 132,000 bytes (255+ blocks) <br>
+* 512 bytes (1 block)
+* 132,000 bytes (255+ blocks)
 
-Lost <br><br>
+Lost <br>
 * Single block, DATA
 * Single block, ACK
 * Double block, DATA
 * Double block, ACK
-* 512 bytes (1 block) <br>
-* 132,000 bytes (255+ blocks) <br>
+* 512 bytes (1 block)
+* 132,000 bytes (255+ blocks)
 
 <hr>
 
@@ -51,32 +51,32 @@ Normal <br>
 * Single block, ACK
 * Double block, DATA
 * Double block, ACK
-* 512 bytes (1 block) <br>
-* 132,000 bytes (255+ blocks) <br>
+* 512 bytes (1 block)
+* 132,000 bytes (255+ blocks)
 
 Duplicate <br>
 * Single block, DATA
 * Single block, ACK
 * Double block, DATA
 * Double block, ACK
-* 512 bytes (1 block) <br>
-* 132,000 bytes (255+ blocks) <br>
+* 512 bytes (1 block)
+* 132,000 bytes (255+ blocks)
 
 Delay <br>
 * Single block, DATA
 * Single block, ACK
 * Double block, DATA
 * Double block, ACK
-* 512 bytes (1 block) <br>
-* 132,000 bytes (255+ blocks) <br>
+* 512 bytes (1 block)
+* 132,000 bytes (255+ blocks)
 
-Lost <br><br>
+Lost <br>
 * Single block, DATA
 * Single block, ACK
 * Double block, DATA
 * Double block, ACK
-* 512 bytes (1 block) <br>
-* 132,000 bytes (255+ blocks) <br>
+* 512 bytes (1 block)
+* 132,000 bytes (255+ blocks)
 
 <hr>
 
