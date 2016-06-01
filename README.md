@@ -1,4 +1,38 @@
-# Iteration 4 Due Tuesday May 31st
+* Verbose vs Quiet
+* Error handling vs No Error Handling
+
+<br><b> General </b><br>
+* Empty file <br>
+* Single block <br>
+* Double block <br>
+* 512 bytes <br>
+* 132,000 bytes <br>
+
+<hr>
+
+<b> READ </b><br><br>
+
+<b> Normal </b><br>
+
+<b> Duplicate </b><br>
+
+<b> Delay </b><br>
+
+<b> Lost </b><br><br>
+
+<hr>
+
+<b> WRITE </b><br>
+
+<b> Normal </b><br>
+
+<b> Duplicate </b><br>
+
+<b> Delay </b><br>
+
+<b> Lost </b><br><br>
+
+<hr>
 
 Work in-progress for Iteration 2
 
