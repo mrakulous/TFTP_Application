@@ -1,3 +1,5 @@
+package project;
+
 // TFTPClient.java
 // This class is the client side for a very simple assignment based on TFTP on
 // UDP/IP. The client uses one port and sends a read or write request and gets 
@@ -257,7 +259,7 @@ public class TFTPClient {
 						/* if data block is 1 higher, send ack back and inc ack counter, else send same data block number*/
 						/*
 						if(leftByte.compareTo(ackCntL) == 0 && rightByte.compareTo(ackCntR) == 0) {
-							incAckCounter();
+							incWriteAckCounter();
 							break;
 						} else {
 							System.out.println("Packet not as expected - error cannot be handled this iteration");
@@ -386,7 +388,7 @@ public class TFTPClient {
 					break;
 				}
 			
-				incAckCounter(leftByte, rightByte);
+				incReadAckCounter(leftByte, rightByte);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -402,7 +404,6 @@ public void write(String fp) {
 		//ackCntL = 0;
 		//ackCntR = 0;//start ack counter at 0
 		int len, dataCheck;
-		boolean firstRun = true;
 		
 		try {
 			BufferedInputStream in = new BufferedInputStream(new FileInputStream(filepath));
@@ -439,50 +440,27 @@ public void write(String fp) {
 						
 						//****ERROR HANDLING: DUPLICATE DATA****
 						
-						//if incoming block number != ack counter + 1, keep waiting, 
-						//check for duplicate
-						/*
-						byte byteCheck1 = (byte) (ackCntR+1);
-						//case where right ack byte counter is at max
-						if(ackCntR==255) {
-							byte leftCount = (byte) (ackCntL+1);
-							if(receivePacket.getData()[2]==leftCount && receivePacket.getData()[3]==byteCheck1) {
-								break;
-							}
-						}else if(receivePacket.getData()[2]==ackCntL && receivePacket.getData()[3]==byteCheck1) {
-							break;
-						} else {
-							System.out.println("Packet not as expected - error cannot be handled this iteration");
-							System.exit(1);
-						}
-						*/
-						
 						//Get block number from received packet to compare
 						Byte leftByte = new Byte(receivePacket.getData()[2]);
 						Byte rightByte = new Byte(receivePacket.getData()[3]);
 						
-						/*
-						 * BUG IS HERE - LOGIC IS OFF
-						 */
-						
-						//If ack counter matches packet block number, continue, else break
-						if(firstRun) {
-							if(leftByte.compareTo(getAckCntL()) == 0 && rightByte.compareTo(getAckCntR()) == 0) {
-								//increment ack counter if correct block number received
-								incAckCounter(leftByte, rightByte);	
-								break;
-							}
+						//If incoming ack packet is correct ack packet, inc and break
+						if(leftByte.compareTo(getAckCntL()) == 0 && rightByte.compareTo(getAckCntR()) == 0) {
+							//increment ack counter if correct block number received
+							incWriteAckCounter(leftByte, rightByte);	
+							break;
 						} else {
 							//if duplicate ACK packet, ignore and wait
-							if(!(leftByte.intValue() == getAckCntL() && rightByte.intValue() == getAckCntR())) {
+							System.out.println("\n*****DUPLICATE ACK RECEIVED - IGNORING PACKET*****\n");
+							/*
+							if(!(leftByte.intValue() == getAckCntL().intValue() && rightByte.intValue() == getAckCntR().intValue())) {
 								if(leftByte.compareTo(getAckCntL()) == 0 && rightByte.compareTo(getAckCntR()) == 0) {
 									//increment ack counter if correct block number received
-									incAckCounter(leftByte, rightByte);	
+									incWriteAckCounter(leftByte, rightByte);	
 									break;
 								} 
-							}
+							}*/
 						}
-						firstRun = false;
 					}//end for
 					
 				} catch (IOException e) {
@@ -500,7 +478,7 @@ public void write(String fp) {
 		        System.out.println("From host: " + receivePacket.getAddress());
 		        System.out.println("Host port: " + receivePacket.getPort());
 		        int packetLength = receivePacket.getLength();
-		        System.out.println("Length: " + packetLength);
+		        System.out.println("Packet Length: " + packetLength);
 		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 		        System.out.println("Contents(bytes): " + msg);
 		        if(packetLength > 4) {
@@ -536,8 +514,8 @@ public void write(String fp) {
 				
 				msg[0] = 0;
 				msg[1] = DATA_PACKET;
-				msg[2] = blocknum1;
-				msg[3] = blocknum2;
+				msg[2] = getAckCntL();
+				msg[3] = getAckCntR();
 				
 			  //System.arraycopy(src, srcLoc, dest, destLoc, len)
 				if(len != 0) {
@@ -545,12 +523,12 @@ public void write(String fp) {
 				}
 					
 				sendPacket = new DatagramPacket(msg, msg.length, InetAddress.getLocalHost(), simPort);
-				
+		        packetLength = sendPacket.getLength();
+		        
 				System.out.println("Client: Sending packet to simulator.");
 		        System.out.println("To host: " + sendPacket.getAddress());
 		        System.out.println("Destination host port: " + sendPacket.getPort());
-		        packetLength = sendPacket.getLength();
-		        System.out.println("Packet Length: " + packetLength);
+		        System.out.println("Packet Length: " + (len+4));
 		        System.out.println("Block Number: " + blocknum1.toString() + blocknum2.toString());
 		        System.out.println("Contents(bytes): " + msg);
 		        if(packetLength > 4) {
@@ -562,7 +540,6 @@ public void write(String fp) {
 		        	// It is an ACK packet
 		        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 		        }
-
 		        
 				try {
 					sendReceiveSocket.send(sendPacket);
@@ -571,7 +548,6 @@ public void write(String fp) {
 					System.exit(1);
 				}
 				
-				testString("THIS IS TEST FOR LEN: " + len);
 		} while (len==DATA_SIZE);
 			if(len<DATA_SIZE) {
 				in.close();
@@ -633,7 +609,7 @@ public void write(String fp) {
 		}
 	}
 		
-	private void incAckCounter(Byte l, Byte r) {
+	private void incReadAckCounter(Byte l, Byte r) {
 		
 		Byte leftByte = l;
 		Byte rightByte = r;
@@ -668,6 +644,25 @@ public void write(String fp) {
 			System.out.println("Memory limit reached. Aborting...");
 			System.exit(1);
 		}
+	}
+	
+	private void incWriteAckCounter(Byte l, Byte r) {
+		Byte leftByte = l;
+		Byte rightByte = r;
+	
+		if(!(ackCntL == 255 && ackCntR == 255)) {
+			if(ackCntL.compareTo(leftByte) == 0 && ackCntR.compareTo(rightByte) == 0) {
+				if(ackCntR == 255){
+					ackCntL++;
+					ackCntR = 0;
+				} else {
+					ackCntR++;
+				}
+			}
+		} else {
+			System.out.println("Memory limit reached. Aborting...");
+			System.exit(1);
+		}		
 	}
 	
 	private void printDataPacket(DatagramPacket p, byte[] m) {
