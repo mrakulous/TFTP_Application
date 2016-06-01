@@ -78,9 +78,7 @@ Lost <br>
 * 512 bytes (1 block)
 * 132,000 bytes (255+ blocks)
 
-<hr>
-
-Work in-progress for Iteration 2
+# Problems from TA test
 
 1. Fix file creation
 2. stops after one
