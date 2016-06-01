@@ -3,8 +3,8 @@
 - [ ] Verbose/Quiet
 - [ ] Error/NoError
 - [ ] Server shutdown
-- [ ] Continue transfer
-- [ ] Empty file
+- [ ] Allow more than one transfer
+- [ ] Empty file (makes a file with 4 blank bytes)
 - [ ] Timeout
 
 <hr>
@@ -12,10 +12,10 @@
 <b> READ </b><br><br>
 
 Normal <br>
-- [ ] Single block
-- [ ] Double block
-- [ ] 512 bytes (1 block)
-- [ ] 132,000 bytes (255+ blocks)
+- [x] Single block [June 1, 5:51pm]
+- [x] Double block [June 1, 5:51pm]
+- [ ] 512 bytes
+- [ ] 132,000 bytes
 
 Duplicate <br>
 - [ ] RRQ
@@ -24,30 +24,28 @@ Duplicate <br>
 - [ ] Single block, ACK
 - [ ] Double block, DATA
 - [ ] Double block, ACK
-- [ ] 512 bytes (1 block)
-- [ ] 132,000 bytes (255+ blocks)
+- [ ] 512 bytes
+- [ ] 132,000 bytes
 
 Delay <br>
+- [x] RRQ [June 1, 5:51pm]
+- [x] WRQ [June 1, 5:51pm]
+- [ ] Single block, DATA
+- [ ] Single block, ACK
+- [ ] Double block, DATA
+- [ ] Double block, ACK
+- [ ] 512 bytes
+- [ ] 132,000 bytes
+
+Lost <br>
 - [ ] RRQ
 - [ ] WRQ
 - [ ] Single block, DATA
 - [ ] Single block, ACK
 - [ ] Double block, DATA
 - [ ] Double block, ACK
-- [ ] 512 bytes (1 block)
-- [ ] 132,000 bytes (255+ blocks)
-
-Lost <br>
-- [ ] Single block, RRQ
-- [ ] Single block, WRQ
-- [ ] Single block, DATA
-- [ ] Single block, ACK
-- [ ] Double block, RRQ
-- [ ] Double block, WRQ
-- [ ] Double block, DATA
-- [ ] Double block, ACK
-- [ ] 512 bytes (1 block)
-- [ ] 132,000 bytes (255+ blocks)
+- [ ] 512 bytes
+- [ ] 132,000 bytes
 
 <hr>
 
@@ -56,8 +54,8 @@ Lost <br>
 Normal <br>
 - [ ] Single block
 - [ ] Double block
-- [ ] 512 bytes (1 block)
-- [ ] 132,000 bytes (255+ blocks)
+- [ ] 512 bytes
+- [ ] 132,000 bytes
 
 Duplicate <br>
 - [ ] RRQ
@@ -66,8 +64,8 @@ Duplicate <br>
 - [ ] Single block, ACK
 - [ ] Double block, DATA
 - [ ] Double block, ACK
-- [ ] 512 bytes (1 block)
-- [ ] 132,000 bytes (255+ blocks)
+- [ ] 512 bytes
+- [ ] 132,000 bytes
 
 Delay <br>
 - [ ] RRQ
@@ -76,20 +74,18 @@ Delay <br>
 - [ ] Single block, ACK
 - [ ] Double block, DATA
 - [ ] Double block, ACK
-- [ ] 512 bytes (1 block)
-- [ ] 132,000 bytes (255+ blocks)
+- [ ] 512 bytes
+- [ ] 132,000 bytes
 
 Lost <br>
-- [ ] Single block, RRQ
-- [ ] Single block, WRQ
+- [ ] RRQ
+- [ ] WRQ
 - [ ] Single block, DATA
 - [ ] Single block, ACK
-- [ ] Double block, RRQ
-- [ ] Double block, WRQ
 - [ ] Double block, DATA
 - [ ] Double block, ACK
-- [ ] 512 bytes (1 block)
-- [ ] 132,000 bytes (255+ blocks)
+- [ ] 512 bytes
+- [ ] 132,000 bytes
 
 # Problems from TA test
 
