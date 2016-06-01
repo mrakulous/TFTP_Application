@@ -21,8 +21,10 @@ public class TFTPClient {
 	private static final int DATA_PACKET = 3;
 	private static final int ACK_PACKET = 4;
 	
-	private static final int TIMEOUT = 1000;
-	private static final int RETRANSMIT_TIME = 2000;
+	private static final int TIMEOUT = 50000;
+	private static final int RETRANSMIT_TIME = 25000;
+	
+	private static final char QUIT = 'q';
 	
 	//REQUEST AND MODE TYPES
 	public static enum Request { READ, WRITE, ERROR};
@@ -53,33 +55,43 @@ public class TFTPClient {
    		String filename;
    		String mode;
    		Request req;
-   		
+   		String checkInput;
    		int cmd = 0;
    		
-   		while(true) {
-			try {
+   		while(true) {				
+				System.out.print("[1]Read   [2]Write  [5]Shutdown, to Quit press \"q\" (not implemented) : ");
+				checkInput = re.nextLine();
+				if(checkInput.equals(QUIT)) {
+					shutDown();
+				} else {
+					try {
 				
-				System.out.print("[1]Read   [2]Write  [5]Shutdown : ");
-				cmd = Integer.parseInt(re.nextLine());
-				if(cmd == 1) {
-					req = Request.READ;
-					break;
-				} else if(cmd == 2) {
-					req = Request.WRITE;
-					break;
-				} else if (cmd == 5) {
-					System.exit(1);
+						cmd = Integer.parseInt(checkInput);
+						if(cmd == 1) {
+							req = Request.READ;
+							setAckCounter(req);
+							break;
+						} else if(cmd == 2) {
+							req = Request.WRITE;
+							setAckCounter(req);
+							break;
+						} else if (cmd == 5) {
+							System.exit(1);
+						}
+					} catch(NumberFormatException e) {
+						System.out.println("Please enter a valid option");
+					}
 				}
-			} catch(NumberFormatException e) {
-				System.out.println("Please enter a valid option");
-			}
 		}
    		
    		//read in filename
    		while(true) {
 			try {
-				System.out.print("Enter the file you would like to " + req.toString() +": ");
+				System.out.print("Enter the file you would like to " + req.toString() +" (\"q\" to Quit): ");
 				filename = re.nextLine();
+				if(filename.equals(QUIT)) {
+					shutDown();
+				}
 				//workingDir = System.getProperty("user.dir");
 				//filepath = workingDir + "\\" + filename;
 				File input = new File(filename);
@@ -93,8 +105,11 @@ public class TFTPClient {
    		//*****************TO FIX******************
 		while(true) {
 			try {
-				System.out.print("[1]netascii  [2]octet : ");
-				cmd = Integer.parseInt(re.nextLine());
+				System.out.print("[1]netascii  [2]octet (\"q\" to Quit): ");
+				checkInput = re.nextLine();
+				if(checkInput.equals(QUIT))
+					shutDown();
+				cmd = Integer.parseInt(checkInput);
 				if(cmd == 1) {
 					mode = "netascii";
 					break;
@@ -107,7 +122,9 @@ public class TFTPClient {
 			}
 		}
    		//for(;;) {
-   			run(filename, mode, req);
+   		run(filename, mode, req);
+   		System.out.println("***Transfer Complete***");
+   		System.out.println("");
    		//}
    	}
 
@@ -193,8 +210,8 @@ public class TFTPClient {
    		String filepath = fp;
    		Byte blocknum1=0;
 		Byte blocknum2=1;
-		ackCntL = 0;
-		ackCntR = 1;//we are starting our read ack counter at 1
+		//ackCntL = 0;
+		//ackCntR = 1;//we are starting our read ack counter at 1
 		
 		try {
 			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("new"+filepath));
@@ -213,7 +230,10 @@ public class TFTPClient {
 					 */
 					for(;;) {
 						//set timeout time
-
+						
+						
+						
+						
 						//*******ADD MULTIPLE SENDS BEFORE TIME OUT*********************************************
 						sendReceiveSocket.setSoTimeout(TIMEOUT);
 						
@@ -228,29 +248,24 @@ public class TFTPClient {
 						//case where right ack byte counter is at max
 						
 						//get received packet number
+						/*
 						Byte leftByte = new Byte(receivePacket.getData()[2]);
 						Byte rightByte = new Byte(receivePacket.getData()[3]);
 											
 						//compare block number to our counter
+						
+						/* if data block is 1 higher, send ack back and inc ack counter, else send same data block number*/
+						/*
 						if(leftByte.compareTo(ackCntL) == 0 && rightByte.compareTo(ackCntR) == 0) {
-							//increment ack counter if correct block number received
-							if(ackCntL.intValue()<256) {
-								if(ackCntR.intValue() == 255) {
-									ackCntL++;
-									ackCntR=0;
-								} else {
-									ackCntR++;
-								}
-							} else {
-								System.out.println("File too big, exiting program.");
-							}
-							
+							incAckCounter();
 							break;
 						} else {
 							System.out.println("Packet not as expected - error cannot be handled this iteration");
 							System.exit(1);
 						}
-						/**/
+						
+					 	*/
+						break;
 					}
 				} catch (IOException e) {//CHANGE TO SEND DATA MORE THAN 5 TIMES
 					System.out.println("No data received: Data lost.");
@@ -264,53 +279,64 @@ public class TFTPClient {
 		        	 e.printStackTrace();
 		        }
 				
-				//get received packet block number
-				Byte leftByte = new Byte(receivePacket.getData()[2]);
-				Byte rightByte = new Byte(receivePacket.getData()[3]);
-				
-				System.out.println("Client: DATA Packet received from simulator.");
-		        System.out.println("From host: " + receivePacket.getAddress());
-		        System.out.println("Host port: " + receivePacket.getPort());
-		        len = receivePacket.getLength();
-		        System.out.println("Packet Length: " + len);
-		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
-		        System.out.println("Contents(bytes): " + msg);
-		        String contents = new String(msg,4,len-4);
-		        System.out.println("Contents(string): \n" + contents + "\n");
-                
-		        try {
+				len = receivePacket.getLength();
+				printDataPacket(receivePacket, msg);
+		        
+				try {
 		             Thread.sleep(500);
 		        } catch (InterruptedException e) {
 		        	 e.printStackTrace();
 		        }
+				
+				Byte leftByte = new Byte(receivePacket.getData()[2]);
+				Byte rightByte = new Byte(receivePacket.getData()[3]);
 		        
 		      //System.arraycopy(src, srcLoc, dest, destLoc, len)
 				System.arraycopy(receivePacket.getData(), 4, data, 0, receivePacket.getLength()-4);
 
 				
-				for(len = 4; len < data.length; len++) {
-					if (data[len] == 0) break;
+				if(!(ackCntL == 255 && ackCntR == 255)) {
+					if(ackCntR == 255){
+						
+						// if the data packet is correct (1 block number higher)
+						if((leftByte) == ackCntL.byteValue()+1 && (rightByte)== 0) {
+							
+							for(len = 4; len < data.length; len++) {
+								if (data[len] == 0) break;
+							}
+	
+							out.write(data,0,len);
+							
+						} 
+						    
+					} else {
+						
+						if (leftByte == ackCntL.byteValue() && (rightByte)== ackCntR.byteValue()+1){
+							for(len = 4; len < data.length; len++) {
+								if (data[len] == 0) break;
+							}
+	
+							out.write(data,0,len);
+							}
+						
+					}
+				} else {
+					System.out.println("Memory limit reached. Aborting...");
+					System.exit(1);
 				}
-
-				out.write(data,0,len);
+					
 
 				byte[] ack = new byte[4];
 				ack[0] = 0;
 				ack[1] = ACK_PACKET;
-				ack[2] = blocknum1;
-				ack[3] = blocknum2;
+				ack[2] = leftByte;
+				ack[3] = rightByte;
 
-				sendPacket = new DatagramPacket(ack, ack.length, InetAddress.getLocalHost(), 23);
+				sendPacket = new DatagramPacket(ack, ack.length, InetAddress.getLocalHost(), simPort);
 				
-				System.out.println("Client: Sending ACK packet to simulator.");
-		        System.out.println("To host: " + sendPacket.getAddress());
-		        System.out.println("Destination host port: " + sendPacket.getPort());
-		        int packetLength = sendPacket.getData().length;
-		        System.out.println("Packet Length: " + packetLength);
-		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
-		        System.out.println("Contents(bytes): " + ack);
+				printAckPacket(sendPacket, leftByte, rightByte);
 		        
-		        if(packetLength > 4) {
+		        if(sendPacket.getData().length > 4) {
 		        	// It is not an ACK packet
 		        	contents = new String(ack, 4, DATA_SIZE);
 		        	System.out.println("Contents(string): \n" + contents + "\n");
@@ -347,7 +373,7 @@ public class TFTPClient {
 					out.close();
 					
 					try {
-			             Thread.sleep(2500);
+			             Thread.sleep(500);
 			        } catch (InterruptedException e) {
 			        	 e.printStackTrace();
 			        }
@@ -356,14 +382,11 @@ public class TFTPClient {
 					/*
 					 * IMPLEMENT RE-PROMPT FOR NEW FILE TRANSFER
 					 */
-					System.exit(1);
+					//System.exit(1);
 					break;
 				}
 			
-				if(blocknum2 == 255) {
-					blocknum1++;
-				}
-				blocknum2++;
+				incAckCounter(leftByte, rightByte);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -376,9 +399,10 @@ public void write(String fp) {
 		String filepath = fp;
 		Byte blocknum1= new Byte((byte)0);
 		Byte blocknum2= new Byte((byte)0);//first block sent
-		ackCntL = 0;
-		ackCntR = 0;//start ack counter at 0
+		//ackCntL = 0;
+		//ackCntR = 0;//start ack counter at 0
 		int len, dataCheck;
+		boolean firstRun = true;
 		
 		try {
 			BufferedInputStream in = new BufferedInputStream(new FileInputStream(filepath));
@@ -391,6 +415,7 @@ public void write(String fp) {
 				
 				try {
 					// Network Error Handling 
+					
 					
 					for(;;) {
 						sendReceiveSocket.receive(receivePacket);
@@ -436,25 +461,28 @@ public void write(String fp) {
 						Byte leftByte = new Byte(receivePacket.getData()[2]);
 						Byte rightByte = new Byte(receivePacket.getData()[3]);
 						
+						/*
+						 * BUG IS HERE - LOGIC IS OFF
+						 */
+						
 						//If ack counter matches packet block number, continue, else break
-						if(leftByte.compareTo(ackCntL) == 0 && rightByte.compareTo(ackCntR) == 0) {
-							//increment ack counter if correct block number received
-							if(ackCntL.intValue()<256) {
-								if(ackCntR.intValue() == 255) {
-									ackCntL++;
-									ackCntR=0;
-								} else {
-									ackCntR++;
-								}
-							} else {
-								System.out.println("File too big, exiting program.");
+						if(firstRun) {
+							if(leftByte.compareTo(getAckCntL()) == 0 && rightByte.compareTo(getAckCntR()) == 0) {
+								//increment ack counter if correct block number received
+								incAckCounter(leftByte, rightByte);	
+								break;
 							}
-							
-							break;
 						} else {
-							System.out.println("Packet not as expected - error cannot be handled this iteration");
-							System.exit(1);
+							//if duplicate ACK packet, ignore and wait
+							if(!(leftByte.intValue() == getAckCntL() && rightByte.intValue() == getAckCntR())) {
+								if(leftByte.compareTo(getAckCntL()) == 0 && rightByte.compareTo(getAckCntR()) == 0) {
+									//increment ack counter if correct block number received
+									incAckCounter(leftByte, rightByte);	
+									break;
+								} 
+							}
 						}
+						firstRun = false;
 					}//end for
 					
 				} catch (IOException e) {
@@ -505,7 +533,7 @@ public void write(String fp) {
 				} else {
 					len = dataCheck;
 				}
-
+				
 				msg[0] = 0;
 				msg[1] = DATA_PACKET;
 				msg[2] = blocknum1;
@@ -543,6 +571,7 @@ public void write(String fp) {
 					System.exit(1);
 				}
 				
+				testString("THIS IS TEST FOR LEN: " + len);
 		} while (len==DATA_SIZE);
 			if(len<DATA_SIZE) {
 				in.close();
@@ -567,5 +596,119 @@ public void write(String fp) {
 	
 	private void testString(String n) {
 		System.out.println(n);
+	}
+	
+	private void shutDown() {
+		System.out.println("Shutting Down...");
+		System.out.println("Done.");
+		System.exit(1);
+	}
+	
+	/*
+	private boolean checkAckPacket(DatagramPacket p) {
+		boolean isAck = false;
+		DatagramPacket receivePacket = p;
+		
+		Byte leftByte = new Byte(receivePacket.getData()[2]);
+		Byte rightByte = new Byte(receivePacket.getData()[3]);
+		
+		//If ack counter matches packet block number, continue, else break
+		if(leftByte.compareTo(ackCntL) == 0 && rightByte.compareTo(ackCntR) == 0) {
+			//increment ack counter if correct block number received
+			
+			
+			
+		
+		}
+	}
+	*/
+	private void setAckCounter(Request r) {
+		Request req = r;
+		if(req == Request.READ) {
+			ackCntL = 0;
+			ackCntR = 1;
+		} else if (req == Request.WRITE) {
+			ackCntL = 0;
+			ackCntR = 0;
+		}
+	}
+		
+	private void incAckCounter(Byte l, Byte r) {
+		
+		Byte leftByte = l;
+		Byte rightByte = r;
+		/*if(ackCntL.intValue()<256) {
+			if(ackCntR.intValue() == 255) {
+				ackCntL++;
+				ackCntR=0;
+			} else {
+				ackCntR++;
+			}
+		} else {
+			System.out.println("File too big, exiting program.");
+			System.exit(1);
+		}*/
+		
+		if(!(ackCntL == 255 && ackCntR == 255)) {
+			if(ackCntR == 255){
+				
+				// if the data packet is correct (1 block number higher)
+				if((leftByte) == ackCntL.byteValue()+1 && (rightByte)== 0) {
+					ackCntL++;
+					ackCntR=0;
+				} 
+				    
+			} else {
+				
+				if (leftByte == ackCntL.byteValue() && (rightByte)== ackCntR.byteValue()+1){
+					ackCntR++;
+				}
+			}
+		} else {
+			System.out.println("Memory limit reached. Aborting...");
+			System.exit(1);
+		}
+	}
+	
+	private void printDataPacket(DatagramPacket p, byte[] m) {
+		DatagramPacket packet = p;
+		byte[] msg = m;
+		int len = 0;
+		
+		Byte leftByte = new Byte(packet.getData()[2]);
+		Byte rightByte = new Byte(packet.getData()[3]);
+		
+		System.out.println("Client: DATA Packet received from simulator.");
+        System.out.println("From host: " + packet.getAddress());
+        System.out.println("Host port: " + packet.getPort());
+        len = packet.getLength();
+        System.out.println("Packet Length: " + len);
+        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+        System.out.println("Contents(bytes): " + msg);
+        String contents = new String(msg,4,len-4);
+        System.out.println("Contents(string): \n" + contents + "\n");
+	}
+	
+	private void printAckPacket(DatagramPacket p, Byte l, Byte r) {
+		DatagramPacket packet = p;
+		Byte leftByte = l;
+		Byte rightByte = r;
+		int packetLength;
+		
+		System.out.println("Client: Sending ACK packet to simulator.");
+        System.out.println("To host: " + packet.getAddress());
+        System.out.println("Destination host port: " + packet.getPort());
+        packetLength = packet.getData().length;
+        System.out.println("Packet Length: " + packetLength);
+        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+        System.out.println("Contents(bytes): " + packet.getData());
+	}
+	
+	private Byte getAckCntL() {
+		return ackCntL;
+	}
+	
+	private Byte getAckCntR() {
+		return ackCntR;
 	}
 }
