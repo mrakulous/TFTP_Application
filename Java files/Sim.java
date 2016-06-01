@@ -1,3 +1,5 @@
+package project;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -7,10 +9,11 @@ public class Sim {
 	private DatagramSocket receiveSocket, sendSocket, sendReceiveSocket;
 	private static int cmd;
 	private static int packetType;
-	private static byte blockNum;
+	private static Byte blockNum;
 	private byte[] data;
 	private static Scanner re;
 	private static int time;
+	private static Byte leftByte, rightByte;
 
 	private byte[] dataSer;
 	public static final int MAC_SOCKET = 2300;
@@ -35,8 +38,7 @@ public class Sim {
 
 		int clientPort, j=0, len;
 		String contents;
-		Byte leftByte;
-		Byte rightByte;
+		
 
 		data = new byte[TOTAL_SIZE];
 		receivePacket = new DatagramPacket(data, data.length);
@@ -98,26 +100,32 @@ public class Sim {
 		sendPacket = new DatagramPacket(data, len,
 				receivePacket.getAddress(), Serport);
 		
+		System.out.println("############### " + cmd);
+		
 		if(cmd!=0) {
 			byte[] currentBlock = new byte[2];
 			System.arraycopy(data, 2, currentBlock, 0, 2);
 			Byte firstBlock = new Byte (currentBlock[0]);
-			Byte secondBlock = new Byte (currentBlock[0]);
-			int correct = firstBlock.intValue()*10 + secondBlock.intValue() ;
+			Byte secondBlock = new Byte (currentBlock[1]);
+			Byte correct = (byte) (firstBlock.intValue()*10 + secondBlock.intValue()) ;
 			if(blockNum == correct && data[1] == (byte)packetType){
-				if(cmd == 1){
+				if(cmd==1){
 					try {
+						System.out.println("############### DUPLICATE_1 ###############");
 						duplicate();
 					} catch (SocketException e) {
 						e.printStackTrace();
 					}
-				} else if(cmd ==2){
+				}
+				if(cmd==2){
 					try {
+						System.out.println("############### DELAY!!!!!!!!!!! ########");
 						delay();
 					} catch (SocketException e) {
 						e.printStackTrace();
 					}
-				} else {
+				} 
+				if(cmd==3){
 					try {
     				   lost();
 					} catch (UnknownHostException e) {
@@ -217,35 +225,6 @@ public class Sim {
 		sendPacket = new DatagramPacket(data, receivePacket.getLength(),
 		      receivePacket.getAddress(), clientPort);
 
-		if(cmd!=0) {
-			byte[] currentBlock = new byte[2];
-			System.arraycopy(data, 2, currentBlock, 0, 2);
-			Byte firstBlock = new Byte (currentBlock[0]);
-			Byte secondBlock = new Byte (currentBlock[1]);
-			Byte correct = (byte) (firstBlock.intValue()*10 + secondBlock.intValue());
-			if(blockNum == correct && data[1] == (byte)packetType){
-				if(cmd == 1){
-					try {
-						duplicate();
-					} catch (SocketException e) {
-						e.printStackTrace();
-					}
-				} else if(cmd ==2){
-					try {
-						delay();
-					} catch (SocketException e) {
-						e.printStackTrace();
-					}
-				} else {
-					try {
-    				   lost();
-					} catch (UnknownHostException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-        }
-
 		System.out.println("Simulator: Sending packet to client.");
 		System.out.println("To host: " + sendPacket.getAddress());
 		System.out.println("Destination host port: " + sendPacket.getPort());
@@ -282,12 +261,68 @@ public class Sim {
 			e.printStackTrace();
 			System.exit(1);
 		}
+		
+		if(cmd!=0) {
+			byte[] currentBlock = new byte[2];
+			System.arraycopy(data, 2, currentBlock, 0, 2);
+			Byte firstBlock = new Byte (currentBlock[0]);
+			Byte secondBlock = new Byte (currentBlock[1]);
+			Byte correct = (byte) (firstBlock.intValue()*10 + secondBlock.intValue()) ;
+			if(blockNum == correct && data[1] == (byte)packetType){
+				if(cmd == 1){
+					try {
+						System.out.println("############### DUPLICATE_2 ###############");
+						duplicate();
+					} catch (SocketException e) {
+						e.printStackTrace();
+					}
+				}
+				if(cmd ==2){
+					try {
+						delay();
+					} catch (SocketException e) {
+						e.printStackTrace();
+					}
+				} 
+				if(cmd==3){
+					try {
+    				   lost();
+					} catch (UnknownHostException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+        }
 		sendSocket.close();
 	}
 
-   public void duplicate () throws SocketException {
+   public void duplicate() throws SocketException {
 	   try {
-		   sendReceiveSocket.send(sendPacket);
+		   	System.out.println("Simulator: Sending packet to client.");
+			System.out.println("To host: " + sendPacket.getAddress());
+			System.out.println("Destination host port: " + sendPacket.getPort());
+			int len = sendPacket.getLength();
+			System.out.println("Length: " + len);
+			System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+	        System.out.println("Contents(bytes): " + data);
+	        if(len > 4) {
+	        	// It is not an ACK packet
+	        	String contents = new String(data, 4, DATA_SIZE);
+	        	System.out.println("Contents(string): \n" + contents + "\n");
+	        }
+	        else {
+	        	// It is an ACK packet
+	        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+	        }
+	        try {
+	        	System.out.println("Waiting " + (time/1000) + " seconds between first,second packets");
+				Thread.sleep(time);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+	        sendReceiveSocket.send(sendPacket);
+	        System.out.println("~~~~~~~~~~~~~~~~~~~~~~ DUPLICATE SENT ~~~~~~~~~~~~~~~~~~~~~~\n");
+
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -298,8 +333,14 @@ public class Sim {
    } // end duplicate
 
    private void delay() throws SocketException {
-	   sendReceiveSocket.setSoTimeout(time);
-    }// end delay
+	   try {
+       	System.out.println("@@@@@@@@@@ WAITING " + time);
+			Thread.sleep(time);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	   System.out.println("@@@@@@@@@@ BAKRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR");
+	}
 
    	private void lost() throws UnknownHostException {
 	   byte[] ipAddr = new byte[] { 127, 0, 0, 1 };
