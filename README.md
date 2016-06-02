@@ -4,13 +4,15 @@
 - [ ] <b> 3. </b> Read, duplicate, DATA, needs to be handled properly by the client
 - [ ] <b> 4. </b> Read, normal, only reads ~65000 bytes for a 132000 bytes file
 - [ ] <b> 5. </b> Read, duplicate, ACK print statement
-- 
+- [ ] <b> 6. </b> Should not be able to pick for example, WRQ when doing a read nor RRQ when writing
+- [ ] <b> 7. </b> Invalid block number input is not handled
+
 # Things We Need
 
 - [ ] <b> Verbose/Quiet </b>
 - [ ] <b> Error/NoError </b>
 - [ ] <b> Server shutdown </b>
-- [ ] Allow more than one transfer </b>
+- [ ] <b> Allow more than one transfer </b>
 - [x] Empty file [June 2]
 - [ ] <b> Timeout </b>
 
@@ -26,33 +28,27 @@ Normal <br>
 
 Duplicate <br>
 - [ ] <b> RRQ (Problem #2) </b>
-- [ ] <b> WRQ (Impossible) </b>
+- [x] WRQ (Impossible) [June 2]
 - [ ] <b> Single block, DATA (Problem #3) </b>
-- [ ] Single block, ACK
-- [ ] Double block, DATA
-- [ ] Double block, ACK
-- [ ] 512 bytes
-- [ ] 132,000 bytes
+- [ ] <b> Single block, ACK (Problem #5) </b>
+- [ ] <b> Double block, DATA (Problem #3) </b>
+- [ ] <b> Double block, ACK (Problem #5) </b>
 
 Delay <br>
-- [ ] RRQ
-- [ ] WRQ
-- [ ] Single block, DATA
-- [ ] Single block, ACK
-- [ ] Double block, DATA
-- [ ] Double block, ACK
-- [ ] 512 bytes
-- [ ] 132,000 bytes
+- [x] RRQ [June 2]
+- [x] WRQ (Impossible) [June 2]
+- [x] Single block, DATA [June 2]
+- [x] Single block, ACK [June 2]
+- [x] Double block, DATA [June 2]
+- [x] Double block, ACK [June 2]
 
 Lost <br>
-- [ ] RRQ
-- [ ] WRQ
-- [ ] Single block, DATA
-- [ ] Single block, ACK
-- [ ] Double block, DATA
-- [ ] Double block, ACK
-- [ ] 512 bytes
-- [ ] 132,000 bytes
+- [ ] <b> RRQ </b>
+- [ ] <b> WRQ </b>
+- [ ] <b> Single block, DATA </b>
+- [ ] <b> Single block, ACK </b>
+- [ ] <b> Double block, DATA </b>
+- [ ] <b> Double block, ACK </b>
 
 <hr>
 
@@ -71,8 +67,6 @@ Duplicate <br>
 - [ ] Single block, ACK
 - [ ] Double block, DATA
 - [ ] Double block, ACK
-- [ ] 512 bytes
-- [ ] 132,000 bytes
 
 Delay <br>
 - [ ] RRQ
@@ -81,8 +75,6 @@ Delay <br>
 - [ ] Single block, ACK
 - [ ] Double block, DATA
 - [ ] Double block, ACK
-- [ ] 512 bytes
-- [ ] 132,000 bytes
 
 Lost <br>
 - [ ] RRQ
@@ -91,8 +83,6 @@ Lost <br>
 - [ ] Single block, ACK
 - [ ] Double block, DATA
 - [ ] Double block, ACK
-- [ ] 512 bytes
-- [ ] 132,000 bytes
 
 # Problems from TA test
 
