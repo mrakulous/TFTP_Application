@@ -1,26 +1,33 @@
+# Problems
+- [ ] <b> 1. </b> Server prints wrong byte array length (Alagu)
+- [ ] <b> 2. </b> Read, duplicate, RRQ print statement
+- [ ] <b> 3. </b> Read, duplicate, DATA, needs to be handled properly by the client
+- [ ] <b> 4. </b> Read, normal, only reads ~65000 bytes for a 132000 bytes file
+- [ ] <b> 5. </b> Read, duplicate, ACK print statement
+- 
 # Things We Need
 
-- [ ] Verbose/Quiet
-- [ ] Error/NoError
-- [ ] Server shutdown
-- [ ] Allow more than one transfer
-- [ ] Empty file (makes a file with 4 blank bytes)
-- [ ] Timeout
+- [ ] <b> Verbose/Quiet </b>
+- [ ] <b> Error/NoError </b>
+- [ ] <b> Server shutdown </b>
+- [ ] Allow more than one transfer </b>
+- [x] Empty file [June 2]
+- [ ] <b> Timeout </b>
 
-<hr>
+# Tests
 
 <b> READ </b><br><br>
 
 Normal <br>
-- [x] Single block [June 1]
-- [x] Double block [June 1]
-- [x] 512 bytes [June 1]
-- [ ] 132,000 bytes (Only reads ~65000 bytes)
+- [x] Single block [June 2]
+- [x] Double block [June 2]
+- [x] 512 bytes [June 2]
+- [ ] <b> 132,000 bytes (Problem #4) </b>
 
 Duplicate <br>
-- [ ] RRQ
-- [ ] WRQ
-- [ ] Single block, DATA 
+- [ ] <b> RRQ (Problem #2) </b>
+- [ ] <b> WRQ (Impossible) </b>
+- [ ] <b> Single block, DATA (Problem #3) </b>
 - [ ] Single block, ACK
 - [ ] Double block, DATA
 - [ ] Double block, ACK
@@ -28,8 +35,8 @@ Duplicate <br>
 - [ ] 132,000 bytes
 
 Delay <br>
-- [x] RRQ [June 1]
-- [x] WRQ [June 1]
+- [ ] RRQ
+- [ ] WRQ
 - [ ] Single block, DATA
 - [ ] Single block, ACK
 - [ ] Double block, DATA
