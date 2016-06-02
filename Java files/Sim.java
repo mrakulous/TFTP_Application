@@ -1,4 +1,4 @@
-package project;
+package iter3;
 
 import java.io.*;
 import java.net.*;
@@ -132,7 +132,7 @@ public class Sim {
 				} 
 				if(cmd==3){
 					try {
-    				   lost();
+						sendPacket = lost(sendPacket);
 					} catch (UnknownHostException e) {
 						e.printStackTrace();
 					}
@@ -297,7 +297,7 @@ public class Sim {
 				} 
 				if(cmd==3){
 					try {
-    				   lost();
+    				   sendPacket = lost(sendPacket);
 					} catch (UnknownHostException e) {
 						e.printStackTrace();
 					}
@@ -360,12 +360,13 @@ public class Sim {
 	   System.out.println("@@@@@@@@@@ BAKRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR");
 	}
 
-   	private void lost() throws UnknownHostException {
+   	private DatagramPacket lost(DatagramPacket sendPacket) throws UnknownHostException {
 	   byte[] ipAddr = new byte[] { 127, 0, 0, 1 };
        InetAddress addr = InetAddress.getByAddress(ipAddr);
 
        losePacket =  new DatagramPacket (sendPacket.getData(),
     		   				data.length, addr, sendPacket.getPort());
+       return losePacket;
   	}// end lost
 
    	public static void function() {
