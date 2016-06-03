@@ -28,7 +28,6 @@ Normal <br>
 
 Duplicate <br>
 - [ ] <b> RRQ (Problem #2) </b>
-- [x] WRQ (Impossible) [June 2]
 - [ ] <b> Single block, DATA (Problem #3) </b>
 - [ ] <b> Single block, ACK (Problem #5) </b>
 - [ ] <b> Double block, DATA (Problem #3) </b>
@@ -36,7 +35,6 @@ Duplicate <br>
 
 Delay <br>
 - [x] RRQ [June 2]
-- [x] WRQ (Impossible) [June 2]
 - [x] Single block, DATA [June 2]
 - [x] Single block, ACK [June 2]
 - [x] Double block, DATA [June 2]
@@ -44,7 +42,6 @@ Delay <br>
 
 Lost <br>
 - [ ] <b> RRQ </b>
-- [ ] <b> WRQ </b>
 - [ ] <b> Single block, DATA </b>
 - [ ] <b> Single block, ACK </b>
 - [ ] <b> Double block, DATA </b>
@@ -55,13 +52,12 @@ Lost <br>
 <b> WRITE </b><br><br>
 
 Normal <br>
-- [ ] Single block
+- [x] Single block
 - [ ] Double block
 - [ ] 512 bytes
 - [ ] 132,000 bytes
 
 Duplicate <br>
-- [ ] RRQ
 - [ ] WRQ
 - [ ] Single block, DATA
 - [ ] Single block, ACK
@@ -69,7 +65,6 @@ Duplicate <br>
 - [ ] Double block, ACK
 
 Delay <br>
-- [ ] RRQ
 - [ ] WRQ
 - [ ] Single block, DATA
 - [ ] Single block, ACK
@@ -77,7 +72,6 @@ Delay <br>
 - [ ] Double block, ACK
 
 Lost <br>
-- [ ] RRQ
 - [ ] WRQ
 - [ ] Single block, DATA
 - [ ] Single block, ACK
