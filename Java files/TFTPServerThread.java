@@ -104,11 +104,11 @@ public class TFTPServerThread implements Runnable
 		// Create a response.
 		
 		if(req==Request.READ) {
+			setAckCounter(req);
 			read(filename);
-			setAckCounter(req);
 		} else if(req==Request.WRITE) {
-			write(filename);
 			setAckCounter(req);
+			write(filename);
 		}
 	}
 
