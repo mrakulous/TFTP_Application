@@ -1,8 +1,10 @@
-package project;
+package iter3;
 
 import java.io.*;
 import java.net.*;
 import java.util.*;
+
+import iter3.TFTPClient.Request;
 
 //import TFTPServer.Request;
 
@@ -13,6 +15,9 @@ public class TFTPServerThread implements Runnable
 	private static final int TOTAL_SIZE = DATA_SIZE+4;  
 	private static final int DATA_PACKET = 3;
 	private static final int ACK_PACKET = 4;
+	
+	private static final int RETRANSMIT_TIME = 2500;
+	
 	private DatagramPacket receivedPacket, sendPacket;
 	private DatagramSocket Socket;
 	private String mode;
@@ -21,8 +26,8 @@ public class TFTPServerThread implements Runnable
 	private int port;
 
 	private boolean firstTime = true;
-	private Byte leftByte;
-	private Byte rightByte;
+	//ACK counter
+	private Byte ackCntL, ackCntR;//starting byte
 	
 	public TFTPServerThread(DatagramPacket received)
 	{
@@ -100,8 +105,10 @@ public class TFTPServerThread implements Runnable
 		
 		if(req==Request.READ) {
 			read(filename);
+			setAckCounter(req);
 		} else if(req==Request.WRITE) {
 			write(filename);
+			setAckCounter(req);
 		}
 	}
 
@@ -112,10 +119,8 @@ public class TFTPServerThread implements Runnable
 	 public void read(String fn) {
 		 
 		String filename = fn; 
-		Byte blocknum1= new Byte((byte) 0);
-		Byte blocknum2= new Byte((byte) 1);
-		Byte ackByte1;
-		Byte ackByte2;
+		Byte leftByte = null;
+		Byte rightByte = null;
 		int dataCheck, len;
 		DatagramPacket receivePacket;
 		
@@ -136,10 +141,9 @@ public class TFTPServerThread implements Runnable
 
 				msg[0] = 0;
 				msg[1] = DATA_PACKET;
-				msg[2] = blocknum1;
-				msg[3] = blocknum2;
+				msg[2] = getAckCntL();
+				msg[3] = getAckCntR();
 				
-			  //System.arraycopy(src, srcLoc, dest, destLoc, len)
 				if(len != 0) {
 					System.arraycopy(data, 0, msg, 4, len);
 				}
@@ -190,14 +194,14 @@ public class TFTPServerThread implements Runnable
 					}
 				}*/
 				
-				sendPacket = new DatagramPacket(msg, len+4, receivedPacket.getAddress(), receivedPacket.getPort());
+				sendPacket = new DatagramPacket(msg, msg.length, receivedPacket.getAddress(), receivedPacket.getPort());
+				int packetLength = sendPacket.getLength();
 				
 				System.out.println("Server: Sending DATA packet to simulator.");
 		        System.out.println("To host: " + sendPacket.getAddress());
 		        System.out.println("Destination host port: " + sendPacket.getPort());
-		        int packetLength = sendPacket.getLength();
-		        System.out.println("Length: " + packetLength);
-		        System.out.println("Block Number: " + blocknum1.toString() + blocknum2.toString());
+		        System.out.println("Length: " + (len+4));
+		        System.out.println("Block Number: " + getAckCntL().toString() + getAckCntR().toString());
 		        System.out.println("Contents(bytes): " + msg);
 		        String contents = new String(msg, 4, DATA_SIZE);
 			    System.out.println("Contents(string): \n" + contents + "\n");
@@ -223,44 +227,57 @@ public class TFTPServerThread implements Runnable
 					System.exit(1);
 				}
 		        
-				if(blocknum1 < 256) {
-					if(blocknum2 == 255){
-						blocknum1++;
-						blocknum2 = 0;
-					} else {
-						blocknum2++;
-					}
-				} else {
-					System.out.println("You have reached the maximum memory limit.  Aborting...");
-					System.exit(1);
-				}
-		        
-				// check for error 4
-				/*if(receivedPacket.getData()[0] != 0 || receivedPacket.getData()[1] != 3 ||
-						receivedPacket.getData()[2] != blocknum1  || receivedPacket.getData()[3] !=blocknum2) {
-					String error4 = "Format Mistake";
-					formErrPacket(error4);
-				}*/
-				
-			    receivedPacket = new DatagramPacket(msg, msg.length);
-        		
-				try {
-					Socket.receive(receivedPacket);
+				receivePacket = new DatagramPacket(msg, msg.length);
+				try { 
+					// Network Error Handling 
+					for(;;) {
+						//****ERROR HANDLING: DATA LOSS****
+						while(i<=5) {
+							try {
+								Socket.setSoTimeout(RETRANSMIT_TIME);
+								Socket.receive(receivePacket);
+								break;
+							} catch (SocketTimeoutException e) {
+								System.out.println("try"+i);
+								if(i == 5){
+									System.out.println("end");
+									System.exit(1);
+								}
+								Socket.send(sendPacket);
+								i++;
+							}
+						}
+						
+						//****ERROR HANDLING: DUPLICATE ACK****
+						
+						//Get block number from received packet to compare
+						leftByte = new Byte(receivePacket.getData()[2]);
+						rightByte = new Byte(receivePacket.getData()[3]);
+						
+						//If incoming ack packet is correct ack packet, inc and break
+						if(leftByte.compareTo(getAckCntL()) == 0 && rightByte.compareTo(getAckCntR()) == 0) {
+							//increment ack counter if correct block number received
+							incReadAckCounter(leftByte, rightByte);	
+							break;
+						} else {
+							//if duplicate ACK packet, ignore and wait
+							System.out.println("\n*****DUPLICATE ACK RECEIVED - IGNORING PACKET*****\n");
+						}
+					}//end for
+					
 				} catch (IOException e) {
-					e.printStackTrace();
+					System.out.println("No data received: Data lost.");
+					System.out.println("Shutting down.");
 					System.exit(1);
 				}
 
-				//get block number of ack packet
-				ackByte1 = new Byte(receivedPacket.getData()[2]);
-				ackByte2 = new Byte(receivedPacket.getData()[3]);
 				
 		        System.out.println("Server: ACK Packet received from simulator.");
 		        System.out.println("From host: " + receivedPacket.getAddress());
 		        System.out.println("Host port: " + receivedPacket.getPort());
 		        packetLength = receivedPacket.getLength();
 		        System.out.println("Packet Length: " + packetLength);
-		        System.out.println("Block Number: " + ackByte1.toString() + ackByte2.toString());
+		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 		        System.out.println("Contents(bytes): " + msg);
 		        System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 			    
@@ -269,6 +286,10 @@ public class TFTPServerThread implements Runnable
 		        } catch (InterruptedException e) {
 		        	 e.printStackTrace();
 		        }
+		        
+		        if(in.read() == -1){
+					break;
+				}
 		        
 			} while (len==DATA_SIZE);
 			if(len<DATA_SIZE) {
@@ -289,24 +310,25 @@ public class TFTPServerThread implements Runnable
 	public void write(String fn) {
 		
 		String filename = fn;
-		Byte blocknum1= new Byte((byte) 0);
-		Byte blocknum2= new Byte((byte) 0);
 		String contents;
+		int len;
    		
 		try {
 			// The file to get the data from.
 			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("new"+filename));
    			
 			for(;;) {
-				int len;
 				byte[] msg = new byte[TOTAL_SIZE];
 				byte[] data = new byte[DATA_SIZE];
 				byte[] ack = new byte[4];
+				Byte leftByte = new Byte(receivedPacket.getData()[2]);
+				Byte rightByte = new Byte(receivedPacket.getData()[3]);
+				len = receivedPacket.getLength();
                 
 				ack[0] = 0;
 				ack[1] = ACK_PACKET;
-				ack[2] = blocknum1;
-				ack[3] = blocknum2;
+				ack[2] = leftByte;
+				ack[3] = rightByte;
                 
 				// check for error port 
 				/*if(this.port == 0){
@@ -385,18 +407,6 @@ public class TFTPServerThread implements Runnable
 						System.exit(1);
 					}
 				//} end check port
-                
-					if(blocknum1 < 256) {
-						if(blocknum2 == 255){
-							blocknum1++;
-							blocknum2 = 0;
-						} else {
-							blocknum2++;
-						}
-					} else {
-						System.out.println("You have reached the maximum memory limit.  Aborting...");
-						System.exit(1);
-					}
 				
 				receivedPacket = new DatagramPacket(msg, msg.length);
 				
@@ -458,17 +468,38 @@ public class TFTPServerThread implements Runnable
                 
 				System.arraycopy(receivedPacket.getData(), 4, data, 0, receivedPacket.getLength()-4);
                 
-				for(len = 4; len < data.length; len++) {
-					if (data[len] == 0) break;
+				if(!(ackCntL == 127 && ackCntR == 127)) {
+					if(ackCntR == 127){
+						// if the data packet is correct (1 block number higher)
+						if(leftByte == ackCntL.byteValue()+1 && rightByte == 0) {
+							out.write(data,0,len-4);
+						}
+					} else {
+						if (leftByte == ackCntL.byteValue() && rightByte== ackCntR.byteValue()+1){	
+							out.write(data,0,len-4);
+							}
+					}
+				} else {
+					System.out.println("Memory limit reached. Aborting...");
+					System.exit(1);
 				}
-                
-				out.write(data,0,len);
 				
 				if(len<DATA_SIZE) {
-					System.out.println("#####  OPERATION COMPLETED.  #####" + "\n");
 					out.close();
+					try {
+			             Thread.sleep(500);
+			        } catch (InterruptedException e) {
+			        	 e.printStackTrace();
+			        }
+					
+					System.out.println("#####  OPERATION COMPLETED.  #####" + "\n");
+					/*
+					 * IMPLEMENT RE-PROMPT FOR NEW FILE TRANSFER
+					 */
+					//System.exit(1);
 					break;
 				}
+				incWriteAckCounter(leftByte, rightByte);
 			}
 		} catch(FileNotFoundException e){
 			e.printStackTrace();
@@ -478,12 +509,68 @@ public class TFTPServerThread implements Runnable
 			System.exit(1);
 		}
 	}
+	
+	private void incReadAckCounter(Byte left, Byte right) {
+		// increment the ack count for write
+		if(!(ackCntL == 127 && ackCntR == 127)) {
+			// if it is the correct block coming in then increment the ack count or ignore counting up the ack
+			if(ackCntL.compareTo(left) == 0 && ackCntR.compareTo(right) == 0) {
+				if(ackCntR == 127){
+					ackCntL++;
+					ackCntR = 0;
+				} else {
+					ackCntR++;
+				}
+			}
+		} else {
+			System.out.println("Memory limit reached. Aborting...");
+			System.exit(1);
+		}		
+	}
+	
+	private void incWriteAckCounter(Byte left, Byte right) {
+		// increment the ack count for read
+		if(!(ackCntL == 127 && ackCntR == 127)) {
+			// if it is the correct block coming in then increment the ack count or ignore counting up the ack
+			if(ackCntR == 127){
+				// if the data packet is correct (1 block number higher)
+				if(left == ackCntL.byteValue()+1 && right == 0) { // 
+					ackCntL++;
+					ackCntR = 0;
+				}
+			} else {
+				if (left == ackCntL.byteValue() && right== ackCntR.byteValue()+1){
+					ackCntR++;
+				}
+			}
+		} else {
+			System.out.println("Memory limit reached. Aborting...");
+			System.exit(1);
+		}
+	}
+	
+	private void setAckCounter(Request req) {
+		// set the ack counter every new operation
+		if(req == Request.READ) {
+			ackCntL = 0;
+			ackCntR = 1;
+		} else if (req == Request.WRITE) {
+			ackCntL = 0;
+			ackCntR = 0;
+		}
+	}
+	
+	private Byte getAckCntL() {
+		// returns block left
+		return ackCntL;
+	}
+	
+	private Byte getAckCntR() {
+		// returns block right
+		return ackCntR;
+	}
 
 	public void run(){
 		identifyReq();
-	}
-	
-	private void testString(String n) {
-		System.out.println(n);
 	}
 }
