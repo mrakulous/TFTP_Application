@@ -362,7 +362,7 @@ public void write(String filepath) {
 				}
 					
 				// Create the send packet
-				sendPacket = new DatagramPacket(msg, msg.length, InetAddress.getLocalHost(), simPort);
+				sendPacket = new DatagramPacket(msg, len+4, InetAddress.getLocalHost(), simPort);
 				
 		        packetLength = sendPacket.getLength();
 		        
