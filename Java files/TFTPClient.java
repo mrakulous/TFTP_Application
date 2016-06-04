@@ -260,7 +260,8 @@ public class TFTPClient {
 	}
    	
 public void write(String filepath) {
-		int len, dataCheck;
+		int len=0
+		int dataCheck=0;
 		Byte leftByte = null;
 		Byte rightByte = null;
 		
@@ -337,16 +338,7 @@ public void write(String filepath) {
 		        }
 				
 				// Read the file and put its contents into byte array data
-		        dataCheck = in.read(data);
-		        
-		        // Make sure there is still data left
-				if(dataCheck==-1) {
-					// There is no data left
-					len = 0;
-				} else {
-					// There is still data
-					len = dataCheck;
-				}
+		        	dataCheck = in.read(data);
 				
 				// Initialize opcode
 				msg[0] = 0;
@@ -354,28 +346,32 @@ public void write(String filepath) {
 				msg[2] = getAckCntL();
 				msg[3] = getAckCntR();
 				
-				if(len != 0) {
-					// There is still data
-					// Copy the contents of the data array into the msg byte array
-					// Offset by 4 to make sure not to overwrite the opcode
-					System.arraycopy(data, 0, msg, 4, len);
+				if(dataCheck != -1) {
+					System.arraycopy(data, 0, msg, 4, dataCheck);
 				}
 					
 				// Create the send packet
-				sendPacket = new DatagramPacket(msg, len+4, InetAddress.getLocalHost(), simPort);
+				sendPacket = new DatagramPacket(msg, dataCheck+4, InetAddress.getLocalHost(), simPort);
 				
 		        packetLength = sendPacket.getLength();
 		        
 		        // Print out the send packet info
-		        // Function cannot be called since this is a special case
-				System.out.println("Client: Sending packet to simulator.");
+		        System.out.println("Client: Sending packet to simulator.");
 		        System.out.println("To host: " + sendPacket.getAddress());
 		        System.out.println("Destination host port: " + sendPacket.getPort());
-		        System.out.println("Packet Length: " + (len+4));
+		        packetLength = sendPacket.getLength();
+		        System.out.println("Packet Length: " + packetLength);
 		        System.out.println("Block Number: " + getAckCntL().toString() + getAckCntR().toString());
 		        System.out.println("Contents(bytes): " + msg);
-		        contents = new String(msg, 4, DATA_SIZE);
-	        	System.out.println("Contents(string): \n" + contents + "\n");
+		        if(packetLength > 4) {
+		        	// It is not an ACK packet
+		        	contents = new String(msg, 4, DATA_SIZE);
+		        	System.out.println("Contents(string): \n" + contents + "\n");
+		        }
+		        else {
+		        	// It is an ACK packet
+		        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+		        }
 		        
 	        	// Send the DATA packet
 				try {
@@ -385,12 +381,12 @@ public void write(String filepath) {
 					System.exit(1);
 				}
 				
-				if(in.read() == -1){
+				if(dataCheck == -1){
 					break;
 				}
 				
-		} while (len==DATA_SIZE);
-			if(len<DATA_SIZE) {
+		} while (dataCheck==DATA_SIZE);
+			if(dataCheck<DATA_SIZE) {
 				in.close();
 			}
 		} catch (FileNotFoundException e) {
