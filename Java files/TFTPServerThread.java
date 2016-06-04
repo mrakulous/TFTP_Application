@@ -194,7 +194,7 @@ public class TFTPServerThread implements Runnable
 					}
 				}*/
 				
-				sendPacket = new DatagramPacket(msg, msg.length, receivedPacket.getAddress(), receivedPacket.getPort());
+				sendPacket = new DatagramPacket(msg, len+4, receivedPacket.getAddress(), receivedPacket.getPort());
 				int packetLength = sendPacket.getLength();
 				
 				System.out.println("Server: Sending DATA packet to simulator.");
