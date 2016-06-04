@@ -133,21 +133,15 @@ public class TFTPServerThread implements Runnable
 				int i = 0;
 				
 				dataCheck = in.read(data);
-				if(dataCheck==-1) {
-					len = 0;
-				} else {
-					len = dataCheck;
-				}
 
 				msg[0] = 0;
 				msg[1] = DATA_PACKET;
 				msg[2] = getAckCntL();
 				msg[3] = getAckCntR();
 				
-				if(len != 0) {
-					System.arraycopy(data, 0, msg, 4, len);
+				if(dataCheck != -1) {
+					System.arraycopy(data, 0, msg, 4, dataCheck);
 				}
-				
 				
 				/*if(this.port == 0){
 					this.port =  receivedPacket.getPort();
@@ -194,13 +188,13 @@ public class TFTPServerThread implements Runnable
 					}
 				}*/
 				
-				sendPacket = new DatagramPacket(msg, len+4, receivedPacket.getAddress(), receivedPacket.getPort());
+				sendPacket = new DatagramPacket(msg, dataCheck+4, receivedPacket.getAddress(), receivedPacket.getPort());
 				int packetLength = sendPacket.getLength();
 				
 				System.out.println("Server: Sending DATA packet to simulator.");
 		        System.out.println("To host: " + sendPacket.getAddress());
 		        System.out.println("Destination host port: " + sendPacket.getPort());
-		        System.out.println("Length: " + (len+4));
+		        System.out.println("Length: " + sendPacket.getLength());
 		        System.out.println("Block Number: " + getAckCntL().toString() + getAckCntR().toString());
 		        System.out.println("Contents(bytes): " + msg);
 		        String contents = new String(msg, 4, DATA_SIZE);
@@ -287,12 +281,12 @@ public class TFTPServerThread implements Runnable
 		        	 e.printStackTrace();
 		        }
 		        
-		        if(in.read() == -1){
+		        if(dataCheck == -1){
 					break;
 				}
 		        
-			} while (len==DATA_SIZE);
-			if(len<DATA_SIZE) {
+			} while (dataCheck==DATA_SIZE);
+			if(dataCheck<DATA_SIZE) {
 				in.close();
 			}
 		} catch (FileNotFoundException e) {
