@@ -1,4 +1,3 @@
-package iter3;
 
 import java.io.*;
 import java.net.*;
@@ -8,6 +7,7 @@ public class Sim {
 	private DatagramPacket sendPacket, receivePacket, losePacket;
 	private DatagramSocket receiveSocket, sendSocket, sendReceiveSocket;
 	private static int cmd;
+	private static int cmd2;
 	private static int packetType;
 	private static Byte blockNum;
 	private byte[] data;
@@ -23,6 +23,7 @@ public class Sim {
 	public static final int DATA_SIZE = 512;
 	public static final int TOTAL_SIZE = DATA_SIZE+4;
 	public boolean firstTime = true;
+	private static boolean toPrint;
 
 	public Sim() {
 		try {
@@ -42,8 +43,10 @@ public class Sim {
 
 		data = new byte[TOTAL_SIZE];
 		receivePacket = new DatagramPacket(data, data.length);
-
+		
+		if (toPrint == true) {
 		System.out.println("Simulator: Waiting for packet from client............" + "\n");
+		}
 		try {
 			receiveSocket.receive(receivePacket);
 		} catch (IOException e) {
@@ -54,33 +57,49 @@ public class Sim {
 		leftByte = new Byte(receivePacket.getData()[2]);
 		rightByte = new Byte(receivePacket.getData()[3]);
 
+		if (toPrint == true) {
 		System.out.println("Simulator: Packet received from client.");
 		System.out.println("From host: " + receivePacket.getAddress());
+		}
 		clientPort = receivePacket.getPort();
+		if (toPrint == true) {
 		System.out.println("Host port: " + clientPort);
+		}
 		len = receivePacket.getLength();
+		if (toPrint == true) {
 		System.out.println("Length: " + len);
+		}
 		if(firstTime) {
 			// Do nothing
 		}
 		else {
+			if (toPrint == true) {
 			System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+			}
 		}
+		if (toPrint == true) {
         System.out.println("Contents(bytes): " + data);
+		}
         if(firstTime) {
         	// filename and mode
         	contents = new String(data, 2, DATA_SIZE);
+        	if (toPrint == true) {
         	System.out.println("Contents(string): \n" + contents + "\n");
+        	}
         }
         else {
 	        if(len > 4) {
 	        	// It is not an ACK packet
 	        	contents = new String(data, 4, DATA_SIZE);
+	        	if (toPrint == true) {
 	        	System.out.println("Contents(string): \n" + contents + "\n");
+	        	}
 	        }
 	        else {
 	        	// It is an ACK packet
+	        	if (toPrint == true) {
 	        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+	        	}
 	        }
         }
 
@@ -100,7 +119,9 @@ public class Sim {
 		sendPacket = new DatagramPacket(data, len,
 				receivePacket.getAddress(), Serport);
 		
+		if (toPrint == true) {
 		System.out.println("############### " + cmd);
+		}
 		
 		if(cmd!=0) {
 			byte[] currentBlock = new byte[2];
@@ -116,7 +137,9 @@ public class Sim {
 			if(blockNum == correct && data[1] == (byte)packetType){
 				if(cmd==1){
 					try {
+						if (toPrint == true) {
 						System.out.println("############### DUPLICATE_1 ###############");
+						}
 						duplicate();
 					} catch (SocketException e) {
 						e.printStackTrace();
@@ -124,7 +147,9 @@ public class Sim {
 				}
 				if(cmd==2){
 					try {
+						if (toPrint == true) {
 						System.out.println("############### DELAY!!!!!!!!!!! ########");
+						}
 						delay();
 					} catch (SocketException e) {
 						e.printStackTrace();
@@ -140,33 +165,47 @@ public class Sim {
 			}
         }
 
+		if (toPrint == true) {
 		System.out.println("Simulator: Sending packet to server.");
 		System.out.println("To host: " + sendPacket.getAddress());
 		System.out.println("Destination host port: " + sendPacket.getPort());
+		}
 		len = sendPacket.getLength();
+		if (toPrint == true) {
 		System.out.println("Length: " + len);
+		}
 		if(firstTime) {
 			// Do nothing
 		}
 		else {
+			if (toPrint == true) {
 			System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+			}
 		}
+		if (toPrint == true) {
         System.out.println("Contents(bytes): " + data);
+		}
         if(firstTime) {
         	// filename and mode
         	contents = new String(data, 2, DATA_SIZE);
+        	if (toPrint == true) {
         	System.out.println("Contents(string): \n" + contents + "\n");
+        	}
         	firstTime = false;
         }
         else {
 	        if(len > 4) {
 	        	// It is not an ACK packet
 	        	contents = new String(data, 4, DATA_SIZE);
+	        	if (toPrint == true) {
 	        	System.out.println("Contents(string): \n" + contents + "\n");
+	        	}
 	        }
 	        else {
 	        	// It is an ACK packet
+	        	if (toPrint == true) {
 	        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+	        	}
 	        }
         }
 
@@ -175,8 +214,10 @@ public class Sim {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-
+		
+		if (toPrint == true) {
 		System.out.println("Simulator: Waiting for packet from server............" + "\n");
+		}
 
 		try {
 			Thread.sleep(500);
@@ -203,22 +244,32 @@ public class Sim {
 		leftByte = new Byte(receivePacket.getData()[2]);
 		rightByte = new Byte(receivePacket.getData()[3]);
 
+		if (toPrint == true) {
 		System.out.println("Simulator: Packet received from server.");
 		System.out.println("From host: " + receivePacket.getAddress());
+		}
 		serverPort = receivePacket.getPort();
+		if (toPrint == true) {
 		System.out.println("Host port: " + serverPort);
+		}
 		len = receivePacket.getLength();
+		if (toPrint == true) {
 		System.out.println("Length: " + len);
 		System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
         System.out.println("Contents(bytes): " + data);
+		}
         if(len > 4) {
         	// It is not an ACK packet
         	contents = new String(data, 4, DATA_SIZE);
+        	if (toPrint == true) {
         	System.out.println("Contents(string): \n" + contents + "\n");
+        	}
         }
         else {
         	// It is an ACK packet
+        	if (toPrint == true) {
         	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+        	}
         }
 
 		try {
@@ -230,21 +281,29 @@ public class Sim {
 		sendPacket = new DatagramPacket(data, receivePacket.getLength(),
 		      receivePacket.getAddress(), clientPort);
 
+		if (toPrint == true) {
 		System.out.println("Simulator: Sending packet to client.");
 		System.out.println("To host: " + sendPacket.getAddress());
 		System.out.println("Destination host port: " + sendPacket.getPort());
+		}
 		len = sendPacket.getLength();
+		if (toPrint == true) {
 		System.out.println("Length: " + len);
 		System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
         System.out.println("Contents(bytes): " + data);
+		}
         if(len > 4) {
         	// It is not an ACK packet
         	contents = new String(data, 4, DATA_SIZE);
+        	if (toPrint == true) {
         	System.out.println("Contents(string): \n" + contents + "\n");
+        	}
         }
         else {
         	// It is an ACK packet
+        	if (toPrint == true) {
         	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+        	}
         }
 
 		try {
@@ -282,7 +341,9 @@ public class Sim {
 			if(blockNum == correct && data[1] == (byte)packetType){
 				if(cmd == 1){
 					try {
+						if (toPrint == true) {
 						System.out.println("############### DUPLICATE_2 ###############");
+						}
 						duplicate();
 					} catch (SocketException e) {
 						e.printStackTrace();
@@ -316,30 +377,42 @@ public class Sim {
 
    public void duplicate() throws SocketException {
 	   try {
+		   if (toPrint == true) {
 		   	System.out.println("Simulator: Sending packet to client.");
 			System.out.println("To host: " + sendPacket.getAddress());
 			System.out.println("Destination host port: " + sendPacket.getPort());
+		   }
 			int len = sendPacket.getLength();
+			if (toPrint == true) {
 			System.out.println("Length: " + len);
 			System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 	        System.out.println("Contents(bytes): " + data);
+			}
 	        if(len > 4) {
 	        	// It is not an ACK packet
 	        	String contents = new String(data, 4, DATA_SIZE);
+	        	if (toPrint == true) {
 	        	System.out.println("Contents(string): \n" + contents + "\n");
+	        	}
 	        }
 	        else {
 	        	// It is an ACK packet
+	        	if (toPrint == true) {
 	        	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+	        	}
 	        }
 	        try {
+	        	if (toPrint == true) {
 	        	System.out.println("Waiting " + (time/1000) + " seconds between first,second packets");
+	        	}
 				Thread.sleep(time);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 	        sendReceiveSocket.send(sendPacket);
+	        if (toPrint == true) {
 	        System.out.println("~~~~~~~~~~~~~~~~~~~~~~ DUPLICATE SENT ~~~~~~~~~~~~~~~~~~~~~~\n");
+	        }
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -352,12 +425,16 @@ public class Sim {
 
    private void delay() throws SocketException {
 	   try {
+		   if (toPrint == true) {
        	System.out.println("@@@@@@@@@@ WAITING " + time);
-			Thread.sleep(time);
+		   }	
+       	Thread.sleep(time);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	   if (toPrint == true) {
 	   System.out.println("@@@@@@@@@@ BAKRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR");
+	   }
 	}
 
    	private DatagramPacket lost(DatagramPacket sendPacket) throws UnknownHostException {
@@ -371,6 +448,7 @@ public class Sim {
 
    	public static void function() {
    		cmd = 0;
+   		cmd2 = 0;
 		re = new Scanner(System.in);
 		blockNum = -1;
 
@@ -426,6 +504,22 @@ public class Sim {
 			}// end while
 			
       	}
+   		// Choose to have quiet or verbose
+ 		while (true) {
+ 			try {
+ 				System.out.print("[1]: Quiet  [2]: Verbose : ");
+ 				cmd2 = Integer.parseInt(re.nextLine());
+ 				if (cmd2 == 1) {
+ 					toPrint = false;
+ 					break;
+ 				} else {
+ 					toPrint = true;
+ 					break;
+ 				}
+ 			} catch (NumberFormatException e) {
+ 				System.out.println("Please enter a valid option");
+ 			}
+ 		}
    	}
    	
    	private static int parsePacketType() {
