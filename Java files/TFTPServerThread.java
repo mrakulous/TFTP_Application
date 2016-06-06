@@ -134,13 +134,18 @@ public class TFTPServerThread implements Runnable
 				msg[2] = getAckCntL();
 				msg[3] = getAckCntR();
 				
+				String contents;
+				
 				if(dataCheck != -1) {
 					System.arraycopy(data, 0, msg, 4, dataCheck);
+					sendPacket = new DatagramPacket(msg, dataCheck+4, receivedPacket.getAddress(), receivedPacket.getPort());
+					contents = new String(msg, 4, sendPacket.getLength()-4);
 				}
 				else {
 					System.arraycopy(data, 0, msg, 4, 0);
 					dataCheck = 0;
-					System.out.println("QQQQQQQQQQQQQQQQQQQQQQQQQQQQ");
+					sendPacket = new DatagramPacket(msg, dataCheck+4, receivedPacket.getAddress(), receivedPacket.getPort());
+					contents = new String(msg, 4, sendPacket.getLength());
 				}
 				
 				/*if(this.port == 0){
@@ -188,7 +193,7 @@ public class TFTPServerThread implements Runnable
 					}
 				}*/
 				
-				sendPacket = new DatagramPacket(msg, dataCheck+4, receivedPacket.getAddress(), receivedPacket.getPort());
+				
 				int packetLength = sendPacket.getLength();
 				
 				if (toPrint == true) {
@@ -199,7 +204,7 @@ public class TFTPServerThread implements Runnable
 			        System.out.println("Block Number: " + getAckCntL().toString() + getAckCntR().toString());
 			        System.out.println("Contents(bytes): " + msg);
 				}
-		        String contents = new String(msg, 4, DATA_SIZE);
+
 		        if (toPrint == true) {
 		        	System.out.println("Contents(string): \n" + contents + "\n");
 		        }
@@ -266,7 +271,7 @@ public class TFTPServerThread implements Runnable
 			        System.out.println("From host: " + receivePacket.getAddress());
 			        System.out.println("Host port: " + receivePacket.getPort());
 			        packetLength = receivePacket.getLength();
-			        System.out.println("Length: ------------------------" + packetLength);
+			        System.out.println("Length: " + packetLength);
 			        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 			        System.out.println("Contents(bytes): " + msg);
 			        System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");

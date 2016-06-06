@@ -111,10 +111,6 @@ public class Sim {
 
 		sendPacket = new DatagramPacket(data, len, receivePacket.getAddress(), Serport);
 		
-		if (toPrint == true) {
-			System.out.println("############### " + cmd);
-		}
-		
 		if(cmd!=0) {
 			byte[] currentBlock = new byte[2];
 			System.arraycopy(data, 2, currentBlock, 0, 2);
@@ -274,7 +270,7 @@ public class Sim {
 		len = sendPacket.getLength();
 		
 		if (toPrint == true) {
-			System.out.println("Length@@@@@@@@@@@: " + len);
+			System.out.println("Length: " + len);
 			System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 	        System.out.println("Contents(bytes): " + data);
 		}
@@ -293,9 +289,13 @@ public class Sim {
         	}
         }
         else {
-        	// It is an ACK packet
-        	if (toPrint == true) {
-        		System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+        	if(receivePacket.getData()[1] == 4){
+	        	// It is an ACK packet
+	        	if (toPrint == true) {
+	        		System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+	        	}
+        	} else {
+        		System.out.println("Contents(string): \n");
         	}
         }
 
@@ -485,7 +485,7 @@ public class Sim {
    		// Choose to have quiet or verbose
  		while (true) {
  			try {
- 				System.out.print("[1]: Quiet  [2]: Verbose : ");
+ 				System.out.print("[1]Quiet  [2]Verbose : ");
  				cmd2 = Integer.parseInt(re.nextLine());
  				if (cmd2 == 1) {
  					toPrint = false;
