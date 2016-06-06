@@ -1,11 +1,7 @@
 
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
-
-
-//import TFTPServer.Request;
 
 public class TFTPServerThread implements Runnable
 {
