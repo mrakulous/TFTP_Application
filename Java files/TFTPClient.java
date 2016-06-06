@@ -11,15 +11,18 @@ import java.util.*;
 public class TFTPClient {
 
 	private static final int simPort = 23; // Sim port
+	private static final int serverPort = 69; // Server port
+	private static int sendPort = 0; // set to one of the above
 	public static final int DATA_SIZE = 512; // Max DATA per packet
 	public static final int TOTAL_SIZE = DATA_SIZE + 4; // Max DATA including
 														// opcode
 	private static final int DATA_PACKET = 3; // DATA code
 	private static final int ACK_PACKET = 4; // ACK code
-	private static final int TIMEOUT = 50000; // 50 second timeout
-	private static final int RETRANSMIT_TIME = 2500; // 2.5 second retransmit
+	private static final int TIMEOUT = 60000; // 50 second timeout
+	private static final int RETRANSMIT_TIME = 10000; // 5 second retransmit
 	private static final char QUIT = 'q'; // q key to quit at anytime
 	private static boolean toPrint; // to print or not
+	public static Mode test;
 
 	public static enum Request {
 		READ, WRITE, ERROR
@@ -52,6 +55,24 @@ public class TFTPClient {
 		int cmd = 0;
 		int cmd2 = 0;
 
+		while (true) {
+			System.out.print("[1]Normal  [2]Test : ");
+			checkInput = re.nextLine();
+			try {
+				cmd = Integer.parseInt(checkInput); // Get the user input
+				if (cmd == 1) {
+					test = Mode.NORMAL;
+					break;
+				} else if (cmd == 2) {
+					test = Mode.TEST;
+					break;
+				} 
+			} catch (NumberFormatException e) {
+			}
+			System.out.println("Invalid input.");
+			
+		}
+		
 		while (true) {
 			System.out.print("[1]Read  [2]Write  [5]Quit  [q]Shutdown : ");
 			checkInput = re.nextLine();
@@ -159,9 +180,14 @@ public class TFTPClient {
 		msg[index] = 0;
 		index++;
 
+		if(test == Mode.TEST){
+			sendPort = simPort;
+		} else {
+			sendPort = serverPort;
+		}
 		// Create the send packet with request info
 		try {
-			sendPacket = new DatagramPacket(msg, index, InetAddress.getLocalHost(), simPort);
+			sendPacket = new DatagramPacket(msg, index, InetAddress.getLocalHost(), sendPort);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -271,8 +297,13 @@ public class TFTPClient {
 				ack[2] = leftByte;
 				ack[3] = rightByte;
 
+				if(test == Mode.TEST){
+					sendPort = simPort;
+				} else {
+					sendPort = receivePacket.getPort();
+				}
 				// Create the ACK packet to send
-				sendPacket = new DatagramPacket(ack, ack.length, InetAddress.getLocalHost(), simPort);
+				sendPacket = new DatagramPacket(ack, ack.length, InetAddress.getLocalHost(), sendPort);
 
 				// Print the ACK packet info
 				printAckPacket(sendPacket, leftByte, rightByte);
@@ -433,8 +464,13 @@ public class TFTPClient {
 					System.arraycopy(data, 0, msg, 4, dataCheck);
 				}
 
+				if(test == Mode.TEST){
+					sendPort = simPort;
+				} else {
+					sendPort = receivePacket.getPort();
+				}
 				// Create the send packet
-				sendPacket = new DatagramPacket(msg, dataCheck + 4, InetAddress.getLocalHost(), simPort);
+				sendPacket = new DatagramPacket(msg, dataCheck + 4, InetAddress.getLocalHost(), sendPort);
 
 				packetLength = sendPacket.getLength();
 
