@@ -4,7 +4,6 @@ import java.util.*;
 
 public class TFTPServer {
 
-   
    // UDP datagram packets and sockets used to send / receive
    private DatagramPacket receivePacket;
    private static DatagramSocket receiveSocket;
@@ -14,6 +13,7 @@ public class TFTPServer {
    
    public static final int DATA_SIZE = 512;
    public static final int TOTAL_SIZE = DATA_SIZE+4;
+   private static final int PORT = 69;
    private boolean firstTime = true;
    private String contents;
    private Byte leftByte;
@@ -45,7 +45,7 @@ public class TFTPServer {
 		   // Construct a datagram socket and bind it to port 69
 		   // on the local host machine. This socket will be used to
 		   // receive UDP Datagram packets.
-		   receiveSocket = new DatagramSocket(69);
+		   receiveSocket = new DatagramSocket(PORT);
 	   } catch (SocketException se) {
 		   se.printStackTrace();
 		   System.exit(1);
