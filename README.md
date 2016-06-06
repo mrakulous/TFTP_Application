@@ -1,7 +1,6 @@
 # Problems
 - [ ] <b> 2. </b> Read, duplicate, RRQ print statement
 - [ ] <b> 3. </b> Read, duplicate, DATA, needs to be handled properly by the client
-- [ ] <b> 4. </b> Read, normal, only reads ~65000 bytes for a 132000 bytes file
 - [ ] <b> 5. </b> Read, duplicate, ACK print statement
 - [ ] <b> 6. </b> Should not be able to pick for example, WRQ when doing a read nor RRQ when writing
 - [ ] <b> 7. </b> Invalid block number input is not handled
@@ -22,8 +21,8 @@
 Normal <br>
 - [x] Single block
 - [x] Double block
-- [ ] <b> 512 bytes </b>
-- [ ] <b> 132,000 bytes (Problem #4) </b>
+- [x] 512 bytes
+- [x] 132,000 bytes
 
 Duplicate <br>
 - [ ] <b> RRQ (Problem #2) </b>
