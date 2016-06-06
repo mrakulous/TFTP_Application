@@ -1,5 +1,5 @@
 # Problems
-- [ ] <b> 1. </b> Server prints wrong byte array length (Alagu)
+- [x] <b> 1. </b> Server prints wrong byte array length (Alagu)
 - [ ] <b> 2. </b> Read, duplicate, RRQ print statement
 - [ ] <b> 3. </b> Read, duplicate, DATA, needs to be handled properly by the client
 - [ ] <b> 4. </b> Read, normal, only reads ~65000 bytes for a 132000 bytes file
@@ -9,12 +9,12 @@
 
 # Things We Need
 
-- [ ] <b> Verbose/Quiet </b>
-- [ ] <b> Error/NoError </b>
+- [x] <b> Verbose/Quiet </b>
+- [x] <b> Error/NoError </b>
 - [ ] <b> Server shutdown </b>
-- [ ] <b> Allow more than one transfer </b>
+- [x] <b> Allow more than one transfer </b>
 - [x] Empty file [June 2]
-- [ ] <b> Timeout </b>
+- [x] <b> Timeout </b>
 
 # Tests
 
