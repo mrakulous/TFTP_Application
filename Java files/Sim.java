@@ -438,11 +438,11 @@ public class Sim {
 	}
 
    	private DatagramPacket lost(DatagramPacket sendPacket) throws UnknownHostException {
-	   byte[] ipAddr = new byte[] { 127, 0, 0, 1 };
-       InetAddress addr = InetAddress.getByAddress(ipAddr);
+	   //byte[] ipAddr = new byte[] { 127, 0, 0, 1 };
+       //InetAddress addr = InetAddress.getByAddress(ipAddr);
 
        losePacket =  new DatagramPacket (sendPacket.getData(),
-    		   				data.length, addr, sendPacket.getPort());
+    		   				data.length, receivePacket.getAddress(), sendPacket.getPort()+1);
        return losePacket;
   	}// end lost
 
