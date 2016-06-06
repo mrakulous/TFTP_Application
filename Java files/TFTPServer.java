@@ -1,9 +1,3 @@
-// TFTPServer.java 
-// This class is the server side of a simple TFTP server based on
-// UDP/IP. The server receives a read or write packet from a client and
-// sends back the appropriate response without any actual file transfer.
-// One socket (69) is used to receive (it stays open) and another for each response. 
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -31,7 +25,7 @@ public class TFTPServer {
 	   int cmd = 0;
 	   while (true) {
 		   try {
-				System.out.print("[1]: Quiet  [2]: Verbose : ");
+				System.out.print("[1]Quiet  [2]Verbose : ");
 				cmd = Integer.parseInt(re.nextLine());
 				if (cmd == 1) {
 					toPrint = false;
@@ -41,11 +35,11 @@ public class TFTPServer {
 					break;
 				}
 			} catch (NumberFormatException e) {
-				System.out.println("Please enter a valid option");
+				System.out.println("Invalid input.");
 			}
 		}
 	   if (toPrint == true) {
-	   System.out.println("Server: Waiting for packet from simulator............" + "\n");
+		   System.out.println("Server: Waiting for packet from simulator............" + "\n");
 	   }
 	   try {
 		   // Construct a datagram socket and bind it to port 69
@@ -64,7 +58,6 @@ public class TFTPServer {
 	   	 receivePacket = new DatagramPacket(data, data.length);
          // Block until a datagram packet is received from receiveSocket.
          try {
-        	
             receiveSocket.receive(receivePacket);
          } catch (IOException e) {
             e.printStackTrace();
@@ -75,30 +68,32 @@ public class TFTPServer {
          rightByte = new Byte(receivePacket.getData()[3]);
  		
          if (toPrint == true) {
-         System.out.println("Server: Packet received from simulator.");
-	     System.out.println("From host: " + receivePacket.getAddress());
-	     System.out.println("Host port: " + receivePacket.getPort());
+	         System.out.println("Server: Packet received from simulator.");
+		     System.out.println("From host: " + receivePacket.getAddress());
+		     System.out.println("Host port: " + receivePacket.getPort());
          }
+         
 	     int len = receivePacket.getLength();
+	     
 	     if (toPrint == true) {
-	     System.out.println("Length: " + len);
+	    	 System.out.println("Length: " + len);
          }
 	     if(firstTime) {
-				// Do nothing
+	    	 // Do nothing
 		 }
 	     else {
 	    	 if (toPrint == true) {
-	    	 System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+	    		 System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 	    	 }
 	     }
 	     if (toPrint == true) {
-	     System.out.println("Contents(bytes): " + data);
+	    	 System.out.println("Contents(bytes): " + data);
 	     }
 	     if(firstTime) {
 	    	 // filename and mode
 	    	 contents = new String(data, 2, 17);
 	    	 if (toPrint == true) {
-	    	 System.out.println("Contents(string): \n" + contents + "\n");
+	    		 System.out.println("Contents(string): \n" + contents + "\n");
 	    	 }
 	    	 firstTime = false;
 	     }
@@ -107,13 +102,13 @@ public class TFTPServer {
 	    		 // It is not an ACK packet
 	    		 contents = new String(data, 4, DATA_SIZE);
 	    		 if (toPrint == true) {
-	    		 System.out.println("Contents(string): \n" + contents + "\n");
+	    			 System.out.println("Contents(string): \n" + contents + "\n");
 	    		 }
 	    	 }
 	    	 else {
 	    		 // It is an ACK packet
 	    		 if (toPrint == true) {
-	    		 System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+	    			 System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 	    		 }
 	    	 }
 	     }
@@ -134,7 +129,6 @@ public class TFTPServer {
       TFTPServer c = new TFTPServer();
       for(;;){
     	  c.receiveAndSendTFTP();
-    	  
       }
    }
 }

@@ -1,4 +1,3 @@
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -61,7 +60,6 @@ public class TFTPServerThread implements Runnable
 	    System.exit(1);
 	    
 	}*/
-	
 	   
 	public void identifyReq()
 	{
@@ -189,16 +187,16 @@ public class TFTPServerThread implements Runnable
 				int packetLength = sendPacket.getLength();
 				
 				if (toPrint == true) {
-				System.out.println("Server: Sending DATA packet to simulator.");
-		        System.out.println("To host: " + sendPacket.getAddress());
-		        System.out.println("Destination host port: " + sendPacket.getPort());
-		        System.out.println("Length: " + sendPacket.getLength());
-		        System.out.println("Block Number: " + getAckCntL().toString() + getAckCntR().toString());
-		        System.out.println("Contents(bytes): " + msg);
+					System.out.println("Server: Sending DATA packet to simulator.");
+			        System.out.println("To host: " + sendPacket.getAddress());
+			        System.out.println("Destination host port: " + sendPacket.getPort());
+			        System.out.println("Length: " + sendPacket.getLength());
+			        System.out.println("Block Number: " + getAckCntL().toString() + getAckCntR().toString());
+			        System.out.println("Contents(bytes): " + msg);
 				}
 		        String contents = new String(msg, 4, DATA_SIZE);
 		        if (toPrint == true) {
-		        System.out.println("Contents(string): \n" + contents + "\n");
+		        	System.out.println("Contents(string): \n" + contents + "\n");
 		        }
 
 		        try {
@@ -208,7 +206,7 @@ public class TFTPServerThread implements Runnable
 		        }
 		        
 		        if (toPrint == true) {
-		        System.out.println("Server: Waiting for packet from simulator............" + "\n");
+		        	System.out.println("Server: Waiting for packet from simulator............" + "\n");
 		        }
 		        		        
 		        try {
@@ -259,7 +257,7 @@ public class TFTPServerThread implements Runnable
 						} else {
 							//if duplicate ACK packet, ignore and wait
 							if (toPrint == true) {
-							System.out.println("\n*****DUPLICATE ACK RECEIVED - IGNORING PACKET*****\n");
+								System.out.println("\n*****DUPLICATE ACK RECEIVED - IGNORING PACKET*****\n");
 							}
 						}
 					}//end for
@@ -271,14 +269,14 @@ public class TFTPServerThread implements Runnable
 				}
 
 				if (toPrint == true) {
-		        System.out.println("Server: ACK Packet received from simulator.");
-		        System.out.println("From host: " + receivedPacket.getAddress());
-		        System.out.println("Host port: " + receivedPacket.getPort());
-		        packetLength = receivedPacket.getLength();
-		        System.out.println("Packet Length: " + packetLength);
-		        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
-		        System.out.println("Contents(bytes): " + msg);
-		        System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+			        System.out.println("Server: ACK Packet received from simulator.");
+			        System.out.println("From host: " + receivedPacket.getAddress());
+			        System.out.println("Host port: " + receivedPacket.getPort());
+			        packetLength = receivedPacket.getLength();
+			        System.out.println("Packet Length: " + packetLength);
+			        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+			        System.out.println("Contents(bytes): " + msg);
+			        System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 				}
 				
 		        try {
@@ -360,36 +358,38 @@ public class TFTPServerThread implements Runnable
 				
 					sendPacket = new DatagramPacket(ack, ack.length, receivedPacket.getAddress(), receivedPacket.getPort());
 					if (toPrint == true) {
-					System.out.println("Server: Sending ACK packet to simulator.");
-			        System.out.println("To host: " + sendPacket.getAddress());
-			        System.out.println("Destination host port: " + sendPacket.getPort());
+						System.out.println("Server: Sending ACK packet to simulator.");
+				        System.out.println("To host: " + sendPacket.getAddress());
+				        System.out.println("Destination host port: " + sendPacket.getPort());
 					}
 			        len = sendPacket.getLength();
 			        if (toPrint == true) {
-			        System.out.println("Packet Length: " + len);
+			        	System.out.println("Packet Length: " + len);
 			        }
 			        if(firstTime) {
 						// Do nothing
 			        	firstTime = false;
 			        }
 				    else {
-				    	System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+				    	if (toPrint == true) {
+				    		System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+				    	}
 				    }
 			        if (toPrint == true) {
-				    System.out.println("Contents(bytes): " + ack);
+			        	System.out.println("Contents(bytes): " + ack);
 			        }
 				    
 				    if(len > 4) {
 				    	// It is not an ACK packet
 				    	contents = new String(ack, 4, DATA_SIZE);
 				    	if (toPrint == true) {
-				    	System.out.println("Contents(string): \n" + contents + "\n");
+				    		System.out.println("Contents(string): \n" + contents + "\n");
 				    	}
 				    }
 				    else {
 				    	// It is an ACK packet
 				    	if (toPrint == true) {
-				    	System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+				    		System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 				    	}
 				    }
 			        
@@ -400,7 +400,7 @@ public class TFTPServerThread implements Runnable
 			        }
 			        
 			        if (toPrint == true) {
-			        System.out.println("Server: Waiting for packet from simulator............" + "\n");
+			        	System.out.println("Server: Waiting for packet from simulator............" + "\n");
 			        }
 			        
 			        try {
@@ -439,9 +439,8 @@ public class TFTPServerThread implements Runnable
 						}
 					} else {
 						if (leftByte == ackCntL.byteValue() && rightByte== ackCntR.byteValue()+1){	
-							System.out.println(""+receivedPacket.getLength());
 							out.write(data,0,receivedPacket.getLength()-4);
-							}
+						}
 					}
 				} else {
 					System.out.println("Memory limit reached. Aborting...");
@@ -463,21 +462,23 @@ public class TFTPServerThread implements Runnable
 					String error4 = "Format Mistake";
 					formErrPacket (error4 ); 
 				}*/
+				
 				if (toPrint == true) {
-				System.out.println("Server: DATA Packet received from simulator.");
-		        System.out.println("From host: " + receivedPacket.getAddress());
-		        System.out.println("Host port: " + receivedPacket.getPort());
+					System.out.println("Server: DATA Packet received from simulator.");
+			        System.out.println("From host: " + receivedPacket.getAddress());
+			        System.out.println("Host port: " + receivedPacket.getPort());
 				}
 		        len = receivedPacket.getLength();
+		        
 		        if (toPrint == true) {
-		        System.out.println("Length: " + len);
-			    System.out.println("Contents(bytes): " + msg);
+		        	System.out.println("Length: " + len);
+		        	System.out.println("Contents(bytes): " + msg);
 		        }
 			    if(firstTime) {
 			    	// filename and mode
 			    	contents = new String(msg, 0, msg.length);
 			    	if (toPrint == true) {
-			    	System.out.println("Contents(string): \n" + contents + "\n");
+			    		System.out.println("Contents(string): \n" + contents + "\n");
 			    	}
 			    }
 			    else {
@@ -485,13 +486,13 @@ public class TFTPServerThread implements Runnable
 			    		// It is not an ACK packet
 			    		contents = new String(msg, 4, DATA_SIZE);
 			    		if (toPrint == true) {
-			    		System.out.println("Contents(string): \n" + contents + "\n");
+			    			System.out.println("Contents(string): \n" + contents + "\n");
 			    		}
 			    	}
 			    	else {
 			    		// It is an ACK packet
 			    		if (toPrint == true) {
-			    		System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+			    			System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 			    		}
 			    	}
 			    }
@@ -501,6 +502,7 @@ public class TFTPServerThread implements Runnable
 		        } catch (InterruptedException e) {
 		        	 e.printStackTrace();
 		        }
+		        
 				incWriteAckCounter(leftByte, rightByte);
 				
 				if(len<DATA_SIZE) {
@@ -509,13 +511,8 @@ public class TFTPServerThread implements Runnable
 			             Thread.sleep(500);
 			        } catch (InterruptedException e) {
 			        	 e.printStackTrace();
-			        }
-					
+			        }					
 					System.out.println("#####  OPERATION COMPLETED.  #####" + "\n");
-					/*
-					 * IMPLEMENT RE-PROMPT FOR NEW FILE TRANSFER
-					 */
-					//System.exit(1);
 					break;
 				}
 			}

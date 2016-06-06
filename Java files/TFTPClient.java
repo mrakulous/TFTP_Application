@@ -1,9 +1,3 @@
-
-// TFTPClient.java
-// This class is the client side for a very simple assignment based on TFTP on
-// UDP/IP. The client uses one port and sends a read or write request and gets 
-// the appropriate response from the server.  No actual file transfer takes place.   
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -241,17 +235,10 @@ public class TFTPClient {
 					 * initial timeout
 					 */
 					for (;;) {
-						sendReceiveSocket.setSoTimeout(TIMEOUT); // Set the
-																	// timeout
-																	// for the
-																	// sendReceiveSocket
-						sendReceiveSocket.receive(receivePacket); // Break out
-																	// of the
-																	// forever
-																	// loop
-																	// after a
-																	// packet is
-																	// received
+						// Set the timeout for the sendReceiveSocket
+						sendReceiveSocket.setSoTimeout(TIMEOUT); 
+						 // Break out of the forever loop after a packet is received
+						sendReceiveSocket.receive(receivePacket);
 						break;
 					}
 				} catch (SocketTimeoutException e) {
@@ -265,11 +252,9 @@ public class TFTPClient {
 
 				len = receivePacket.getLength();
 
-				printDataPacket(receivePacket, msg, leftByte, rightByte); // Print
-																			// receive
-																			// packet
-																			// info
-
+				// Print receive packet info
+				printDataPacket(receivePacket, msg, leftByte, rightByte); 
+				
 				// Transfer only the DATA into the byte array, skip the opcode
 				System.arraycopy(receivePacket.getData(), 4, data, 0, receivePacket.getLength() - 4);
 
@@ -324,9 +309,6 @@ public class TFTPClient {
 					// This is the last data packet
 					out.close();
 					System.out.println("#####  OPERATION COMPLETED.  #####" + "\n");
-					/*
-					 * IMPLEMENT RE-PROMPT FOR NEW FILE TRANSFER
-					 */
 					break;
 				}
 				incReadAckCounter(leftByte, rightByte);
@@ -350,39 +332,25 @@ public class TFTPClient {
 				byte[] msg = new byte[TOTAL_SIZE]; // msg has size 516
 				byte[] data = new byte[DATA_SIZE]; // data has size 512
 				int i = 0; // DATA delay timer
+				
+				// Create the receive packet
+				receivePacket = new DatagramPacket(msg, msg.length); 
 
-				receivePacket = new DatagramPacket(msg, msg.length); // Create
-																		// the
-																		// receive
-																		// packet
 				try {
 					// Network Error Handling
 					for (;;) {
 						// ****ERROR HANDLING: DATA LOSS****
 						while (i <= 5) {
 							try {
-								sendReceiveSocket.setSoTimeout(RETRANSMIT_TIME); // Set
-																					// the
-																					// sendReceiveSocket
-																					// timeout
-								sendReceiveSocket.receive(receivePacket); // Break
-																			// out
-																			// of
-																			// the
-																			// forever
-																			// loop
-																			// after
-																			// a
-																			// packet
-																			// is
-																			// received
+								// Set the timeout for the sendReceiveSocket
+								sendReceiveSocket.setSoTimeout(RETRANSMIT_TIME);
+								// Break out of the forever loop after a packet is received
+								sendReceiveSocket.receive(receivePacket);
 								break;
 							} catch (SocketTimeoutException e) {
-								System.out.println("try" + i); // DEBUGGING
-																// PURPOSES
+								System.out.println("try" + i); // DEBUGGING PURPOSES
 								if (i == 5) {
-									System.out.println("end"); // DEBUGGING
-																// PURPOSES
+									System.out.println("end"); // DEBUGGING PURPOSES
 									System.exit(1);
 								}
 								// Send the packet to the simulator
@@ -423,31 +391,29 @@ public class TFTPClient {
 				// Print the receive packet info
 				String contents;
 
-				if(toPrint == true)
-				{
-				System.out.println("Client: Packet received from simulator.");
-				System.out.println("From host: " + receivePacket.getAddress());
-				System.out.println("Host port: " + receivePacket.getPort());
+				if(toPrint == true) {
+					System.out.println("Client: Packet received from simulator.");
+					System.out.println("From host: " + receivePacket.getAddress());
+					System.out.println("Host port: " + receivePacket.getPort());
 				}
+				
 				int packetLength = receivePacket.getLength();
-				if(toPrint == true)
-				{
-				System.out.println("Packet Length: " + packetLength);
-				System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
-				System.out.println("Contents(bytes): " + msg);
+				
+				if(toPrint == true) {
+					System.out.println("Packet Length: " + packetLength);
+					System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
+					System.out.println("Contents(bytes): " + msg);
 				}
 				if (packetLength > 4) {
 					// It is not an ACK packet
 					contents = new String(msg, 4, DATA_SIZE);
-					if(toPrint == true)
-					{
-					System.out.println("Contents(string): \n" + contents + "\n");
+					if(toPrint == true) {
+						System.out.println("Contents(string): \n" + contents + "\n");
 					}
 				} else {
 					// It is an ACK packet
-					if(toPrint == true)
-					{
-					System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+					if(toPrint == true) {
+						System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 					}
 				}
 
@@ -475,31 +441,27 @@ public class TFTPClient {
 				packetLength = sendPacket.getLength();
 
 				// Print out the send packet info
-				if(toPrint == true)
-				{
-				System.out.println("Client: Sending packet to simulator.");
-				System.out.println("To host: " + sendPacket.getAddress());
-				System.out.println("Destination host port: " + sendPacket.getPort());
+				if(toPrint == true) {
+					System.out.println("Client: Sending packet to simulator.");
+					System.out.println("To host: " + sendPacket.getAddress());
+					System.out.println("Destination host port: " + sendPacket.getPort());
 				}
 				packetLength = sendPacket.getLength();
-				if(toPrint == true)
-				{
-				System.out.println("Packet Length: " + packetLength);
-				System.out.println("Block Number: " + getAckCntL().toString() + getAckCntR().toString());
-				System.out.println("Contents(bytes): " + msg);
+				if(toPrint == true) {
+					System.out.println("Packet Length: " + packetLength);
+					System.out.println("Block Number: " + getAckCntL().toString() + getAckCntR().toString());
+					System.out.println("Contents(bytes): " + msg);
 				}
 				if (packetLength > 4) {
 					// It is not an ACK packet
 					contents = new String(msg, 4, DATA_SIZE);
-					if(toPrint == true)
-					{
-					System.out.println("Contents(string): \n" + contents + "\n");
+					if(toPrint == true) {
+						System.out.println("Contents(string): \n" + contents + "\n");
 					}
 				} else {
 					// It is an ACK packet
-					if(toPrint == true)
-					{
-					System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+					if(toPrint == true) {
+						System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 					}
 				}
 
@@ -564,9 +526,8 @@ public class TFTPClient {
 				}
 			}
 		} else {
-			if(toPrint == true)
-			{
-			System.out.println("Memory limit reached. Aborting...");
+			if(toPrint == true) {
+				System.out.println("Memory limit reached. Aborting...");
 			}
 			System.exit(1);
 		}
@@ -591,29 +552,27 @@ public class TFTPClient {
 	}
 
 	private void printDataPacket(DatagramPacket packet, byte[] msg, Byte left, Byte right) {
-		if(toPrint == true)
-		{
-		System.out.println("Client: DATA Packet received from simulator.");
-		System.out.println("From host: " + packet.getAddress());
-		System.out.println("Host port: " + packet.getPort());
-		System.out.println("Packet Length: " + packet.getLength());
-		System.out.println("Block Number: " + left.toString() + right.toString());
-		System.out.println("Contents(bytes): " + msg);
-		String contents = new String(msg, 4, packet.getLength() - 4);
-		System.out.println("Contents(string): \n" + contents + "\n");
+		if(toPrint == true) {
+			System.out.println("Client: DATA Packet received from simulator.");
+			System.out.println("From host: " + packet.getAddress());
+			System.out.println("Host port: " + packet.getPort());
+			System.out.println("Packet Length: " + packet.getLength());
+			System.out.println("Block Number: " + left.toString() + right.toString());
+			System.out.println("Contents(bytes): " + msg);
+			String contents = new String(msg, 4, packet.getLength() - 4);
+			System.out.println("Contents(string): \n" + contents + "\n");
 		}
 	}
 
 	private void printAckPacket(DatagramPacket packet, Byte left, Byte right) {
-		if(toPrint == true)
-		{
-		System.out.println("Client: Sending ACK packet to simulator.");
-		System.out.println("To host: " + packet.getAddress());
-		System.out.println("Destination host port: " + packet.getPort());
-		System.out.println("Packet Length: " + packet.getData().length);
-		System.out.println("Block Number: " + left.toString() + right.toString());
-		System.out.println("Contents(bytes): " + packet.getData());
-		System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+		if(toPrint == true) {
+			System.out.println("Client: Sending ACK packet to simulator.");
+			System.out.println("To host: " + packet.getAddress());
+			System.out.println("Destination host port: " + packet.getPort());
+			System.out.println("Packet Length: " + packet.getData().length);
+			System.out.println("Block Number: " + left.toString() + right.toString());
+			System.out.println("Contents(bytes): " + packet.getData());
+			System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 		}
 	}
 
