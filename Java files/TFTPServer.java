@@ -76,7 +76,7 @@ public class TFTPServer {
 	     int len = receivePacket.getLength();
 	     
 	     if (toPrint == true) {
-	    	 System.out.println("Length: " + len);
+	    	 System.out.println("Length: @@@@@@@@@" + len);
          }
 	     if(firstTime) {
 	    	 // Do nothing
@@ -91,33 +91,34 @@ public class TFTPServer {
 	     }
 	     if(firstTime) {
 	    	 // filename and mode
-	    	 contents = new String(data, 2, 17);
+	    	 contents = new String(data, 2, len-2);
 	    	 if (toPrint == true) {
 	    		 System.out.println("Contents(string): \n" + contents + "\n");
 	    	 }
 	    	 firstTime = false;
 	     }
 	     else {
-	    	 if(len > 4) {
-	    		 // It is not an ACK packet
-	    		 contents = new String(data, 4, DATA_SIZE);
-	    		 if (toPrint == true) {
-	    			 System.out.println("Contents(string): \n" + contents + "\n");
-	    		 }
-	    	 }
-	    	 else {
-	    		 // It is an ACK packet
-	    		 if (toPrint == true) {
-	    			 System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
-	    		 }
-	    	 }
+	    	 if(len>4 && receivePacket.getLength()==516) {
+	         	// It is not an ACK packet
+	         	contents = new String(data, 4, receivePacket.getLength()-4);
+	         	if (toPrint == true) {
+	         		System.out.println("Contents(string): \n" + contents + "\n");
+	         	}
+	         }
+	         else if(len>4 && receivePacket.getLength()!=516) {
+	         	// It is not an ACK packet
+	         	contents = new String(data, 4, receivePacket.getLength());
+	         	if (toPrint == true) {
+	         		System.out.println("Contents(string): \n" + contents + "\n");
+	         	}
+	         }
+	         else {
+	         	// It is an ACK packet
+	         	if (toPrint == true) {
+	         		System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+	         	}
+	         }
 	     }
-	     
-	     try {
-	    	 Thread.sleep(500);
-         } catch (InterruptedException e) {
-        	 e.printStackTrace();
-         }
 	     
          TFTPServerThread st = new TFTPServerThread(receivePacket, TFTPServer.toPrint);
          se1 = new Thread(st);

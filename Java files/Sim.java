@@ -81,7 +81,7 @@ public class Sim {
 		}
         if(firstTime) {
         	// filename and mode
-        	contents = new String(data, 2, DATA_SIZE);
+        	contents = new String(data, 2, receivePacket.getLength()-2);
         	if (toPrint == true) {
         		System.out.println("Contents(string): \n" + contents + "\n");
         	}
@@ -89,7 +89,7 @@ public class Sim {
         else {
 	        if(len > 4) {
 	        	// It is not an ACK packet
-	        	contents = new String(data, 4, DATA_SIZE);
+	        	contents = new String(data, 4, receivePacket.getLength());
 	        	if (toPrint == true) {
 	        		System.out.println("Contents(string): \n" + contents + "\n");
 	        	}
@@ -101,12 +101,6 @@ public class Sim {
 	        	}
 	        }
         }
-
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 
 		int Serport = 69;
 		if(data[1] == 1|| data[1] == 2){
@@ -185,7 +179,7 @@ public class Sim {
 		}
         if(firstTime) {
         	// filename and mode
-        	contents = new String(data, 2, DATA_SIZE);
+        	contents = new String(data, 2, receivePacket.getLength());
         	if (toPrint == true) {
         		System.out.println("Contents(string): \n" + contents + "\n");
         	}
@@ -194,7 +188,7 @@ public class Sim {
         else {
 	        if(len > 4) {
 	        	// It is not an ACK packet
-	        	contents = new String(data, 4, DATA_SIZE);
+	        	contents = new String(data, 4, receivePacket.getLength());
 	        	if (toPrint == true) {
 	        		System.out.println("Contents(string): \n" + contents + "\n");
 	        	}
@@ -206,21 +200,9 @@ public class Sim {
 	        	}
 	        }
         }
-
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 		
 		if (toPrint == true) {
 			System.out.println("Simulator: Waiting for packet from server............" + "\n");
-		}
-
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
 
 		try {
@@ -260,9 +242,16 @@ public class Sim {
 			System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 	        System.out.println("Contents(bytes): " + data);
 		}
-        if(len > 4) {
+        if(len>4 && receivePacket.getLength()==516) {
         	// It is not an ACK packet
-        	contents = new String(data, 4, DATA_SIZE);
+        	contents = new String(data, 4, receivePacket.getLength()-4);
+        	if (toPrint == true) {
+        		System.out.println("Contents(string): \n" + contents + "\n");
+        	}
+        }
+        else if(len>4 && receivePacket.getLength()!=516) {
+        	// It is not an ACK packet
+        	contents = new String(data, 4, receivePacket.getLength());
         	if (toPrint == true) {
         		System.out.println("Contents(string): \n" + contents + "\n");
         	}
@@ -273,12 +262,6 @@ public class Sim {
         		System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
         	}
         }
-
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 
 		sendPacket = new DatagramPacket(data, receivePacket.getLength(), receivePacket.getAddress(), clientPort);
 
@@ -291,13 +274,20 @@ public class Sim {
 		len = sendPacket.getLength();
 		
 		if (toPrint == true) {
-			System.out.println("Length: " + len);
+			System.out.println("Length@@@@@@@@@@@: " + len);
 			System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 	        System.out.println("Contents(bytes): " + data);
 		}
-        if(len > 4) {
+		if(len>4 && receivePacket.getLength()==516) {
         	// It is not an ACK packet
-        	contents = new String(data, 4, DATA_SIZE);
+        	contents = new String(data, 4, receivePacket.getLength()-4);
+        	if (toPrint == true) {
+        		System.out.println("Contents(string): \n" + contents + "\n");
+        	}
+        }
+        else if(len>4 && receivePacket.getLength()!=516) {
+        	// It is not an ACK packet
+        	contents = new String(data, 4, receivePacket.getLength());
         	if (toPrint == true) {
         		System.out.println("Contents(string): \n" + contents + "\n");
         	}
@@ -314,12 +304,6 @@ public class Sim {
 		} catch (SocketException se) {
 			se.printStackTrace();
 			System.exit(1);
-		}
-
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
 		
 		if(cmd!=0) {
@@ -387,7 +371,7 @@ public class Sim {
 			}
 	        if(len > 4) {
 	        	// It is not an ACK packet
-	        	String contents = new String(data, 4, DATA_SIZE);
+	        	String contents = new String(data, 4, receivePacket.getLength());
 	        	if (toPrint == true) {
 	        		System.out.println("Contents(string): \n" + contents + "\n");
 	        	}
@@ -420,7 +404,7 @@ public class Sim {
    private void delay() throws SocketException {
 	   try {
 		   if (toPrint == true) {
-       	System.out.println("@@@@@@@@@@ WAITING " + time);
+			   System.out.println("@@@@@@@@@@ WAITING " + time);
 		   }	
        	Thread.sleep(time);
 		} catch (InterruptedException e) {

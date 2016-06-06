@@ -137,6 +137,11 @@ public class TFTPServerThread implements Runnable
 				if(dataCheck != -1) {
 					System.arraycopy(data, 0, msg, 4, dataCheck);
 				}
+				else {
+					System.arraycopy(data, 0, msg, 4, 0);
+					dataCheck = 0;
+					System.out.println("QQQQQQQQQQQQQQQQQQQQQQQQQQQQ");
+				}
 				
 				/*if(this.port == 0){
 					this.port =  receivedPacket.getPort();
@@ -198,21 +203,9 @@ public class TFTPServerThread implements Runnable
 		        if (toPrint == true) {
 		        	System.out.println("Contents(string): \n" + contents + "\n");
 		        }
-
-		        try {
-		             Thread.sleep(500);
-		        } catch (InterruptedException e) {
-		        	 e.printStackTrace();
-		        }
 		        
 		        if (toPrint == true) {
 		        	System.out.println("Server: Waiting for packet from simulator............" + "\n");
-		        }
-		        		        
-		        try {
-		             Thread.sleep(500);
-		        } catch (InterruptedException e) {
-		        	 e.printStackTrace();
 		        }
 		        
 				try {
@@ -270,21 +263,15 @@ public class TFTPServerThread implements Runnable
 
 				if (toPrint == true) {
 			        System.out.println("Server: ACK Packet received from simulator.");
-			        System.out.println("From host: " + receivedPacket.getAddress());
-			        System.out.println("Host port: " + receivedPacket.getPort());
-			        packetLength = receivedPacket.getLength();
-			        System.out.println("Packet Length: " + packetLength);
+			        System.out.println("From host: " + receivePacket.getAddress());
+			        System.out.println("Host port: " + receivePacket.getPort());
+			        packetLength = receivePacket.getLength();
+			        System.out.println("Length: ------------------------" + packetLength);
 			        System.out.println("Block Number: " + leftByte.toString() + rightByte.toString());
 			        System.out.println("Contents(bytes): " + msg);
 			        System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
 				}
-				
-		        try {
-		             Thread.sleep(500);
-		        } catch (InterruptedException e) {
-		        	 e.printStackTrace();
-		        }
-		        
+
 		        if(dataCheck == -1){
 					break;
 				}
@@ -393,20 +380,8 @@ public class TFTPServerThread implements Runnable
 				    	}
 				    }
 			        
-			        try {
-			             Thread.sleep(500);
-			        } catch (InterruptedException e) {
-			        	 e.printStackTrace();
-			        }
-			        
 			        if (toPrint == true) {
 			        	System.out.println("Server: Waiting for packet from simulator............" + "\n");
-			        }
-			        
-			        try {
-			             Thread.sleep(500);
-			        } catch (InterruptedException e) {
-			        	 e.printStackTrace();
 			        }
 			        
 					try {
@@ -497,21 +472,10 @@ public class TFTPServerThread implements Runnable
 			    	}
 			    }
 
-		        try {
-		             Thread.sleep(500);
-		        } catch (InterruptedException e) {
-		        	 e.printStackTrace();
-		        }
-		        
 				incWriteAckCounter(leftByte, rightByte);
 				
 				if(len<DATA_SIZE) {
-					out.close();
-					try {
-			             Thread.sleep(500);
-			        } catch (InterruptedException e) {
-			        	 e.printStackTrace();
-			        }					
+					out.close();					
 					System.out.println("#####  OPERATION COMPLETED.  #####" + "\n");
 					break;
 				}

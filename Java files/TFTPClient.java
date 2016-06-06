@@ -96,7 +96,7 @@ public class TFTPClient {
 		// Choose to have quiet or verbose
 		while (true) {
 			try {
-				System.out.print("[1]: Quiet  [2]: Verbose : ");
+				System.out.print("[1]Quiet  [2]Verbose : ");
 				cmd2 = Integer.parseInt(re.nextLine());
 				if (cmd2 == 1) {
 					toPrint = false;
@@ -194,7 +194,7 @@ public class TFTPClient {
 			System.out.println("Destination host port: " + sendPacket.getPort());
 			System.out.println("Packet Length: " + sendPacket.getLength());
 			System.out.println("Contents(bytes): " + msg);
-			String contents = new String(msg, 2, sendPacket.getLength());
+			String contents = new String(msg, 2, sendPacket.getLength()-2);
 			System.out.println("Contents(string): \n" + contents + "\n");
 		}
 		// Send the request packet
