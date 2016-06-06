@@ -4,7 +4,6 @@ import java.util.*;
 
 public class TFTPServer {
 
-   
    // UDP datagram packets and sockets used to send / receive
    private DatagramPacket receivePacket;
    private static DatagramSocket receiveSocket;
@@ -14,6 +13,7 @@ public class TFTPServer {
    
    public static final int DATA_SIZE = 512;
    public static final int TOTAL_SIZE = DATA_SIZE+4;
+   private static final int PORT = 69;
    private boolean firstTime = true;
    private String contents;
    private Byte leftByte;
@@ -45,7 +45,7 @@ public class TFTPServer {
 		   // Construct a datagram socket and bind it to port 69
 		   // on the local host machine. This socket will be used to
 		   // receive UDP Datagram packets.
-		   receiveSocket = new DatagramSocket(69);
+		   receiveSocket = new DatagramSocket(PORT);
 	   } catch (SocketException se) {
 		   se.printStackTrace();
 		   System.exit(1);
@@ -76,7 +76,7 @@ public class TFTPServer {
 	     int len = receivePacket.getLength();
 	     
 	     if (toPrint == true) {
-	    	 System.out.println("Length: @@@@@@@@@" + len);
+	    	 System.out.println("Length: " + len);
          }
 	     if(firstTime) {
 	    	 // Do nothing
@@ -91,34 +91,33 @@ public class TFTPServer {
 	     }
 	     if(firstTime) {
 	    	 // filename and mode
-	    	 contents = new String(data, 2, len-2);
+	    	 contents = new String(data, 2, 17);
 	    	 if (toPrint == true) {
 	    		 System.out.println("Contents(string): \n" + contents + "\n");
 	    	 }
 	    	 firstTime = false;
 	     }
 	     else {
-	    	 if(len>4 && receivePacket.getLength()==516) {
-	         	// It is not an ACK packet
-	         	contents = new String(data, 4, receivePacket.getLength()-4);
-	         	if (toPrint == true) {
-	         		System.out.println("Contents(string): \n" + contents + "\n");
-	         	}
-	         }
-	         else if(len>4 && receivePacket.getLength()!=516) {
-	         	// It is not an ACK packet
-	         	contents = new String(data, 4, receivePacket.getLength());
-	         	if (toPrint == true) {
-	         		System.out.println("Contents(string): \n" + contents + "\n");
-	         	}
-	         }
-	         else {
-	         	// It is an ACK packet
-	         	if (toPrint == true) {
-	         		System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
-	         	}
-	         }
+	    	 if(len > 4) {
+	    		 // It is not an ACK packet
+	    		 contents = new String(data, 4, DATA_SIZE);
+	    		 if (toPrint == true) {
+	    			 System.out.println("Contents(string): \n" + contents + "\n");
+	    		 }
+	    	 }
+	    	 else {
+	    		 // It is an ACK packet
+	    		 if (toPrint == true) {
+	    			 System.out.println("Contents(string): \n" + "########## ACKPacket ##########\n");
+	    		 }
+	    	 }
 	     }
+	     
+	     try {
+	    	 Thread.sleep(500);
+         } catch (InterruptedException e) {
+        	 e.printStackTrace();
+         }
 	     
          TFTPServerThread st = new TFTPServerThread(receivePacket, TFTPServer.toPrint);
          se1 = new Thread(st);
