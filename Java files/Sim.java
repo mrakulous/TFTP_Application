@@ -28,6 +28,7 @@ public class Sim {
 		try {
 			receiveSocket = new DatagramSocket(WIN_SOCKET);
 			sendReceiveSocket = new DatagramSocket();
+			sendSocket = new DatagramSocket();
 		} catch (SocketException se) {
 			se.printStackTrace();
 			System.exit(1);
@@ -89,7 +90,7 @@ public class Sim {
         else {
 	        if(len > 4) {
 	        	// It is not an ACK packet
-	        	contents = new String(data, 4, receivePacket.getLength());
+	        	contents = new String(data, 4, receivePacket.getLength()-4);
 	        	if (toPrint == true) {
 	        		System.out.println("Contents(string): \n" + contents + "\n");
 	        	}
@@ -101,16 +102,15 @@ public class Sim {
 	        	}
 	        }
         }
-
 		int Serport = 69;
 		if(data[1] == 1|| data[1] == 2){
 			Serport = 69;
 		} else {
 			Serport = serverPort;
 		}
-
+		System.out.println("1"+ Serport);
 		sendPacket = new DatagramPacket(data, len, receivePacket.getAddress(), Serport);
-		
+		System.out.println("2"+ Serport);
 		if(cmd!=0) {
 			byte[] currentBlock = new byte[2];
 			System.arraycopy(data, 2, currentBlock, 0, 2);
@@ -184,7 +184,7 @@ public class Sim {
         else {
 	        if(len > 4) {
 	        	// It is not an ACK packet
-	        	contents = new String(data, 4, receivePacket.getLength());
+	        	contents = new String(data, 4, receivePacket.getLength()-4);
 	        	if (toPrint == true) {
 	        		System.out.println("Contents(string): \n" + contents + "\n");
 	        	}
@@ -200,14 +200,14 @@ public class Sim {
 		if (toPrint == true) {
 			System.out.println("Simulator: Waiting for packet from server............" + "\n");
 		}
-
+		System.out.println("3"+ Serport);
 		try {
 			sendReceiveSocket.send(sendPacket);
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
-
+		System.out.println("4"+ Serport);
 		receivePacket = new DatagramPacket(data, data.length);
 
 		try {
@@ -298,13 +298,6 @@ public class Sim {
         		System.out.println("Contents(string): \n");
         	}
         }
-
-		try {
-			sendSocket = new DatagramSocket();
-		} catch (SocketException se) {
-			se.printStackTrace();
-			System.exit(1);
-		}
 		
 		if(cmd!=0) {
 			byte[] currentBlock = new byte[2];
@@ -351,7 +344,6 @@ public class Sim {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		sendSocket.close();
 	}
 
    public void duplicate() throws SocketException {
@@ -371,7 +363,7 @@ public class Sim {
 			}
 	        if(len > 4) {
 	        	// It is not an ACK packet
-	        	String contents = new String(data, 4, receivePacket.getLength());
+	        	String contents = new String(data, 4, receivePacket.getLength()-4);
 	        	if (toPrint == true) {
 	        		System.out.println("Contents(string): \n" + contents + "\n");
 	        	}
@@ -398,7 +390,7 @@ public class Sim {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		sendReceiveSocket.setSoTimeout(time);
+		//sendReceiveSocket.setSoTimeout(time);
    } // end duplicate
 
    private void delay() throws SocketException {
