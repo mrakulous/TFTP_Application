@@ -23,6 +23,11 @@ public class Sim {
 	public static final int TOTAL_SIZE = DATA_SIZE+4;
 	public boolean firstTime = true;
 	private static boolean toPrint;
+	public boolean firstReq = true;
+	private static boolean read;
+	
+	private int ACKNumber = -1;
+	private boolean backToBeginning = false;
 
 	public Sim() {
 		try {
@@ -33,7 +38,7 @@ public class Sim {
 			se.printStackTrace();
 			System.exit(1);
 		}
-   }
+	}
 
 	public void receiveAndSendTFTP(){
 
@@ -54,8 +59,23 @@ public class Sim {
 			System.exit(1);
 		}
 
+		if(firstReq){
+			if(data[1] == 1){
+				read = true;
+			} else {
+				read = false;
+			}
+			firstReq = false;
+		}
+		
 		leftByte = new Byte(receivePacket.getData()[2]);
 		rightByte = new Byte(receivePacket.getData()[3]);
+		
+		
+		
+		String blockNumberString = leftByte.intValue() + rightByte.intValue() + "";
+		System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX " + blockNumberString);
+		blockNumberString = "";
 
 		if (toPrint == true) {
 			System.out.println("Simulator: Packet received from client.");
@@ -108,9 +128,9 @@ public class Sim {
 		} else {
 			Serport = serverPort;
 		}
-		System.out.println("1"+ Serport);
+		//System.out.println("1"+ Serport);
 		sendPacket = new DatagramPacket(data, len, receivePacket.getAddress(), Serport);
-		System.out.println("2"+ Serport);
+		//System.out.println("2"+ Serport);
 		if(cmd!=0) {
 			byte[] currentBlock = new byte[2];
 			System.arraycopy(data, 2, currentBlock, 0, 2);
@@ -200,16 +220,21 @@ public class Sim {
 		if (toPrint == true) {
 			System.out.println("Simulator: Waiting for packet from server............" + "\n");
 		}
-		System.out.println("3"+ Serport);
+		//System.out.println("3"+ Serport);
 		try {
 			sendReceiveSocket.send(sendPacket);
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		System.out.println("4"+ Serport);
+		//System.out.println("4"+ Serport);
 		receivePacket = new DatagramPacket(data, data.length);
+		
+		if(backToBeginning) {
+			
+		}
 
+		System.out.println("ALAGUUUUUUUUUUUUUUUUUUUUUUUU");
 		try {
 			sendReceiveSocket.receive(receivePacket);
 		} catch(IOException e) {
@@ -382,7 +407,12 @@ public class Sim {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-	        sendReceiveSocket.send(sendPacket);
+	        if((read && sendPacket.getData()[1] == 4) || (!read && sendPacket.getData()[1] == 3)){
+	        	sendReceiveSocket.send(sendPacket);
+	        } else {
+	        	sendSocket.send(sendPacket);
+	        }
+	        
 	        if (toPrint == true) {
 	        	System.out.println("~~~~~~~~~~~~~~~~~~~~~~ DUPLICATE SENT ~~~~~~~~~~~~~~~~~~~~~~\n");
 	        }

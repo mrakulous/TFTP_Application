@@ -19,6 +19,7 @@ public class TFTPClient {
 	public static Mode test;
 	private boolean firstPort = true;
 	private int portt;
+	private Boolean readOperationCompleted = false;
 
 	public static enum Request {
 		READ, WRITE, ERROR
@@ -227,6 +228,7 @@ public class TFTPClient {
 				int len;
 				byte[] msg = new byte[TOTAL_SIZE];
 				byte[] data = new byte[DATA_SIZE];
+				Boolean duplicateReceived = false;
 
 				receivePacket = new DatagramPacket(msg, msg.length);
 
@@ -239,8 +241,13 @@ public class TFTPClient {
 					for (;;) {
 						// Set the timeout for the SendRecieveSocket
 						sendReceiveSocket.setSoTimeout(TIMEOUT);
-						 // Break out of the forever loop after a packet is received
+						// Break out of the forever loop after a packet is received
 						sendReceiveSocket.receive(receivePacket);
+						
+						if(readOperationCompleted) {
+							System.out.println("^^^^^^^ DUPLICATE DATA RECEIVED. ^^^^^^^");
+							duplicateReceived = true;
+						}
 						
 						if(firstPort){
 							this.portt = receivePacket.getPort();
@@ -291,7 +298,6 @@ public class TFTPClient {
 							
 							if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] == 3
 									&& receivePacket.getData()[2] <= getAckCntL()+1 && receivePacket.getData()[3] <= getAckCntR()+1){
-								System.out.println("good data");
 								break;
 							} else {
 								byte[] err4 = new byte[TOTAL_SIZE];
@@ -404,6 +410,10 @@ public class TFTPClient {
 					e.printStackTrace();
 					System.exit(1);
 				}
+				
+				if(duplicateReceived) {
+					break;
+				}
 
 				// Inform the user that the client is now waiting to receive
 				if (toPrint == true) {
@@ -413,7 +423,8 @@ public class TFTPClient {
 					// This is the last data packet
 					out.close();
 					System.out.println("#####  OPERATION COMPLETED.  #####" + "\n");
-					break;
+					readOperationCompleted = true;
+					System.out.println("readOperationCompleted has been set to true ************************************");
 				}
 				incReadAckCounter(leftByte, rightByte);
 			}

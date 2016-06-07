@@ -20,6 +20,7 @@ public class TFTPServerThread implements Runnable
 	private int portt;
 	private InetAddress address;
 	private static boolean toPrint;
+	private boolean firstPort = true;
 
 	private boolean firstTime = true;
 	//ACK counter
@@ -115,7 +116,7 @@ public class TFTPServerThread implements Runnable
 			 System.exit(1);
 		}
 	}
-
+	
 	/**
 	 * Retrieve text file from directory, put it into packet and send to client
 	 * @throws SocketException 
@@ -127,6 +128,8 @@ public class TFTPServerThread implements Runnable
 		Byte rightByte = null;
 		int dataCheck, len;
 		DatagramPacket receivePacket;
+		
+		Boolean isDuplicate = false;
 		
 		try {
 			//read in file
@@ -235,7 +238,6 @@ public class TFTPServerThread implements Runnable
 									
 									if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] == 4
 											&& receivePacket.getData()[2] <= getAckCntL()+1 && receivePacket.getData()[3] <= getAckCntR()+1){
-										System.out.print("good ack");
 										break;
 									} else {
 										byte[] err4 = new byte[TOTAL_SIZE];
@@ -275,9 +277,14 @@ public class TFTPServerThread implements Runnable
 									System.out.println("end");
 									System.exit(1);
 								}
-								Socket.send(sendPacket);
+								if(!isDuplicate) {
+									//sendPacket.getData()[3] = (byte) (getAckCntR());
+									Socket.send(sendPacket);
+									System.out.println("^^^^^^^^ PACKET RETRANSMITTED. ^^^^^^^^");
+								}
 								i++;
 							}
+							System.out.println("BROKENNNNNNNNNNNNNNNNNNNNN");
 						}
 						
 						//****ERROR HANDLING: DUPLICATE ACK****
@@ -296,6 +303,7 @@ public class TFTPServerThread implements Runnable
 							if (toPrint == true) {
 								System.out.println("\n*****DUPLICATE ACK RECEIVED - IGNORING PACKET*****\n");
 							}
+							isDuplicate = true;
 						}
 					}//end for
 					
@@ -417,6 +425,12 @@ public class TFTPServerThread implements Runnable
 				}
 				System.out.println("1"+ receivedPacket.getPort());
 				System.out.println("1"+ portt);
+				
+				if(firstPort){
+					this.portt = receivedPacket.getPort();
+					firstPort = false;
+				}
+				
 				if(receivedPacket.getPort() != portt){
 					byte[] err5 = new byte[TOTAL_SIZE];
 					err5[0] = 0;
