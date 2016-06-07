@@ -17,6 +17,7 @@ public class TFTPClient {
 	private static final char QUIT = 'q'; // q key to quit at anytime
 	private static boolean toPrint; // to print or not
 	public static Mode test;
+	private static int port = -1;
 
 	public static enum Request {
 		READ, WRITE, ERROR
@@ -235,17 +236,115 @@ public class TFTPClient {
 					 * initial timeout
 					 */
 					for (;;) {
-						// Set the timeout for the sendReceiveSocket
-						sendReceiveSocket.setSoTimeout(TIMEOUT); 
+						// Set the timeout for the SendRecieveSocket
+						sendReceiveSocket.setSoTimeout(TIMEOUT);
 						 // Break out of the forever loop after a packet is received
 						sendReceiveSocket.receive(receivePacket);
-						break;
+						if(this.port == -1){
+							this.port = receivePacket.getPort();
+						}
+						
+						if(receivePacket.getPort() != port){
+							byte[] err5 = new byte[TOTAL_SIZE];
+							err5[0] = 0;
+							err5[1] = 5;
+							err5[2] = 0;
+							err5[3] = 5;
+							// the port is not the same
+							String error = "Unknown Port";
+							System.out.println("Error 5: unknown port");
+							System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
+							err5[error.getBytes().length+4] = 0;
+							// create the datagram Packet
+							DatagramPacket errorPacket5 = new DatagramPacket(err5, err5.length,  receivePacket.getAddress(),  receivePacket.getPort());
+							// send the pakcet and wait for the new packet
+							 try{
+								 sendReceiveSocket.send(errorPacket5);
+						     } catch (IOException e){
+						    	 e.printStackTrace();
+						    	 System.exit(1);
+						     }
+						} else {
+							if(receivePacket.getData()[1] == 5){
+								if(receivePacket.getData()[3] == 1){
+									System.out.println("Error 1: this file cannot be found on the server side");
+								} else if(receivePacket.getData()[3] == 2){
+									System.out.println("Error 2: Server doesnt have permission to this file on the server side");
+								}else if(receivePacket.getData()[3] == 3){
+									System.out.println("Error 3: Server ran out of memory to write");
+								}else if(receivePacket.getData()[3] == 4){
+									System.out.println("Error 4: Format error on the packet");
+									System.exit(1);
+								}else if(receivePacket.getData()[3] == 5){
+									System.out.println("Error 5: Tip invalid");
+								}else if(receivePacket.getData()[3] == 6){
+									System.out.println("Cannot write to server. Server has the same file");// not sure what to do
+								} else {
+									System.out.println("Unknown Error");
+								}
+							}
+							
+							if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] == 4
+									&& receivePacket.getData()[2] <= getAckCntL() && receivePacket.getData()[3] <= getAckCntR()){
+								System.out.print("good ack");
+								break;
+							} else {
+								byte[] err4 = new byte[TOTAL_SIZE];
+								err4[0] = 0;
+								err4[1] = 5;
+								err4[2] = 0;
+								err4[3] = 4;
+								// the port is not the same
+								String error;
+								if(receivePacket.getData()[0] != 0){
+									error = "the first byte is not a 0 opcode";
+									System.out.println(error);
+								} else if (receivePacket.getData()[1] != 4) {
+									error = "the second byte is not a ack(4) opcode";
+									System.out.println(error);
+								} else {
+									error = "the block num is higher than the one received";
+									System.out.println(error);
+								}
+								System.arraycopy(error.getBytes(), 0, err4, 4, error.getBytes().length);
+								err4[error.getBytes().length+4] = 0;
+								// create the datagram Packet
+								DatagramPacket errorPacket4 = new DatagramPacket(err4, err4.length,  receivePacket.getAddress(),  receivePacket.getPort());
+								// send the packet and wait for the new packet
+								 try{
+									 sendReceiveSocket.send(errorPacket4);
+							     } catch (IOException e){
+							    	 e.printStackTrace();
+							    	 System.exit(1);
+							     }
+								 System.exit(1);
+							}
+						}
 					}
 				} catch (SocketTimeoutException e) {
 					System.out.println("Shutting down.");
 					System.exit(1);
 				}
 
+				if(receivePacket.getData()[1] == 5){
+					if(receivePacket.getData()[3] == 1){
+						System.out.println("Error 1: this file cannot be found on the server side");
+					} else if(receivePacket.getData()[3] == 2){
+						System.out.println("Error 2: Server doesnt have permission to this file on the server side");
+					}else if(receivePacket.getData()[3] == 3){
+						System.out.println("Error 3: Server ran out of memory to write");
+					}else if(receivePacket.getData()[3] == 4){
+						System.out.println("Error 4: Format error on the packet");
+					}else if(receivePacket.getData()[3] == 5){
+						System.out.println("Error 5: Tip invalid");
+					}else if(receivePacket.getData()[3] == 6){
+						System.out.println("Cannot write to server. Server has the same file");// not sure what to do
+					} else {
+						System.out.println("Unknown Error");
+					}
+					System.exit(1);
+				}
+				
 				// Get block number from received packet to compare
 				Byte leftByte = new Byte(receivePacket.getData()[2]);
 				Byte rightByte = new Byte(receivePacket.getData()[3]);
@@ -346,7 +445,87 @@ public class TFTPClient {
 								sendReceiveSocket.setSoTimeout(RETRANSMIT_TIME);
 								// Break out of the forever loop after a packet is received
 								sendReceiveSocket.receive(receivePacket);
-								break;
+								
+								if(this.port == -1){
+									this.port = receivePacket.getPort();
+								}
+								
+								if(receivePacket.getPort() != port){
+									byte[] err5 = new byte[TOTAL_SIZE];
+									err5[0] = 0;
+									err5[1] = 5;
+									err5[2] = 0;
+									err5[3] = 5;
+									// the port is not the same
+									String error = "Unknown Port";
+									System.out.println("Error 5: unknown port");
+									System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
+									err5[error.getBytes().length+4] = 0;
+									// create the datagram Packet
+									DatagramPacket errorPacket5 = new DatagramPacket(err5, err5.length,  receivePacket.getAddress(),  receivePacket.getPort());
+									// send the pakcet and wait for the new packet
+									 try{
+										 sendReceiveSocket.send(errorPacket5);
+								     } catch (IOException e){
+								    	 e.printStackTrace();
+								    	 System.exit(1);
+								     }
+								} else {
+									if(receivePacket.getData()[1] == 5){
+										if(receivePacket.getData()[3] == 1){
+											System.out.println("Error 1: this file cannot be found on the server side");
+										} else if(receivePacket.getData()[3] == 2){
+											System.out.println("Error 2: Server doesnt have permission to this file on the server side");
+										}else if(receivePacket.getData()[3] == 3){
+											System.out.println("Error 3: Server ran out of memory to write");
+										}else if(receivePacket.getData()[3] == 4){
+											System.out.println("Error 4: Format error on the packet");
+											System.exit(1);
+										}else if(receivePacket.getData()[3] == 5){
+											System.out.println("Error 5: Tip invalid");
+										}else if(receivePacket.getData()[3] == 6){
+											System.out.println("Cannot write to server. Server has the same file");// not sure what to do
+										} else {
+											System.out.println("Unknown Error");
+										}
+									}
+									
+									if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] == 4
+											&& receivePacket.getData()[2] <= getAckCntL() && receivePacket.getData()[3] <= getAckCntR()){
+										System.out.print("good ack");
+										break;
+									} else {
+										byte[] err4 = new byte[TOTAL_SIZE];
+										err4[0] = 0;
+										err4[1] = 5;
+										err4[2] = 0;
+										err4[3] = 4;
+										// the port is not the same
+										String error;
+										if(receivePacket.getData()[0] != 0){
+											error = "the first byte is not a 0 opcode";
+											System.out.println(error);
+										} else if (receivePacket.getData()[1] != 4) {
+											error = "the second byte is not a ack(4) opcode";
+											System.out.println(error);
+										} else {
+											error = "the block num is higher than the one received";
+											System.out.println(error);
+										}
+										System.arraycopy(error.getBytes(), 0, err4, 4, error.getBytes().length);
+										err4[error.getBytes().length+4] = 0;
+										// create the datagram Packet
+										DatagramPacket errorPacket4 = new DatagramPacket(err4, err4.length,  receivePacket.getAddress(),  receivePacket.getPort());
+										// send the packet and wait for the new packet
+										 try{
+											 sendReceiveSocket.send(errorPacket4);
+									     } catch (IOException e){
+									    	 e.printStackTrace();
+									    	 System.exit(1);
+									     }
+										 System.exit(1);
+									}
+								}
 							} catch (SocketTimeoutException e) {
 								System.out.println("try" + i); // DEBUGGING PURPOSES
 								if (i == 5) {
@@ -358,13 +537,13 @@ public class TFTPClient {
 								i++;
 							}
 						}
-
+						
 						// ****ERROR HANDLING: DUPLICATE ACK****
 
 						// Get block number from received packet to compare
 						leftByte = new Byte(receivePacket.getData()[2]);
 						rightByte = new Byte(receivePacket.getData()[3]);
-
+						
 						// If the incoming ACK packet is correct, increment and
 						// break
 						if (leftByte.compareTo(getAckCntL()) == 0 && rightByte.compareTo(getAckCntR()) == 0) {
