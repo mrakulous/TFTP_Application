@@ -284,9 +284,9 @@ public class TFTPClient {
 								}
 							}
 							
-							if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] == 4
+							if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] == 3
 									&& receivePacket.getData()[2] <= getAckCntL() && receivePacket.getData()[3] <= getAckCntR()){
-								System.out.print("good ack");
+								System.out.print("good data");
 								break;
 							} else {
 								byte[] err4 = new byte[TOTAL_SIZE];
@@ -299,8 +299,8 @@ public class TFTPClient {
 								if(receivePacket.getData()[0] != 0){
 									error = "the first byte is not a 0 opcode";
 									System.out.println(error);
-								} else if (receivePacket.getData()[1] != 4) {
-									error = "the second byte is not a ack(4) opcode";
+								} else if (receivePacket.getData()[1] != 3) {
+									error = "the second byte is not a data(3) opcode";
 									System.out.println(error);
 								} else {
 									error = "the block num is higher than the one received";
