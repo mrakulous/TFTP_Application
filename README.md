@@ -1,7 +1,4 @@
 # Problems
-- [ ] <b> 2. </b> Read, duplicate, RRQ print statement
-- [ ] <b> 3. </b> Read, duplicate, DATA, needs to be handled properly by the client
-- [ ] <b> 5. </b> Read, duplicate, ACK print statement
 - [ ] <b> 6. </b> Should not be able to pick for example, WRQ when doing a read nor RRQ when writing
 - [ ] <b> 7. </b> Invalid block number input is not handled
 
@@ -25,10 +22,10 @@ Normal <br>
 - [x] 132,000 bytes
 
 Duplicate <br>
-- [ ] <b> RRQ (Problem #2) </b>
-- [ ] <b> Single block, DATA (Problem #3) </b>
-- [ ] <b> Single block, ACK (Problem #5) </b>
-- [ ] <b> Double block, DATA (Problem #3) </b>
+- [x] RRQ
+- [x] Single block, DATA
+- [x] Single block, ACK
+- [x] Double block, DATA (works for block 1 with 3 second delay)
 - [ ] <b> Double block, ACK (Problem #5) </b>
 
 Delay <br>
