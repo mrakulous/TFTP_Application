@@ -462,9 +462,8 @@ public class TFTPServerThread implements Runnable
 						}
 					}
 					
-					if(receivedPacket.getData()[0] == 0 && receivedPacket.getData()[1] == 4
+					if(receivedPacket.getData()[0] == 0 && receivedPacket.getData()[1] == 3
 							&& receivedPacket.getData()[2] <= getAckCntL() && receivedPacket.getData()[3] <= getAckCntR()){
-						System.out.print("good ack");
 						break;
 					} else {
 						byte[] err4 = new byte[TOTAL_SIZE];
