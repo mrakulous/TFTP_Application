@@ -17,7 +17,8 @@ public class TFTPClient {
 	private static final char QUIT = 'q'; // q key to quit at anytime
 	private static boolean toPrint; // to print or not
 	public static Mode test;
-	private static int port = -1;
+	private boolean firstPort = true;
+	private int portt;
 
 	public static enum Request {
 		READ, WRITE, ERROR
@@ -240,11 +241,15 @@ public class TFTPClient {
 						sendReceiveSocket.setSoTimeout(TIMEOUT);
 						 // Break out of the forever loop after a packet is received
 						sendReceiveSocket.receive(receivePacket);
-						if(this.port == -1){
-							this.port = receivePacket.getPort();
+						
+						if(firstPort){
+							this.portt = receivePacket.getPort();
+							firstPort = false;
 						}
 						
-						if(receivePacket.getPort() != port){
+						if(receivePacket.getPort() != portt){
+							System.out.println(portt+" 5");
+							System.out .println(receivePacket.getPort()+" 5");
 							byte[] err5 = new byte[TOTAL_SIZE];
 							err5[0] = 0;
 							err5[1] = 5;
@@ -285,8 +290,8 @@ public class TFTPClient {
 							}
 							
 							if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] == 3
-									&& receivePacket.getData()[2] <= getAckCntL() && receivePacket.getData()[3] <= getAckCntR()){
-								System.out.print("good data");
+									&& receivePacket.getData()[2] <= getAckCntL()+1 && receivePacket.getData()[3] <= getAckCntR()+1){
+								System.out.println("good data");
 								break;
 							} else {
 								byte[] err4 = new byte[TOTAL_SIZE];
@@ -446,11 +451,12 @@ public class TFTPClient {
 								// Break out of the forever loop after a packet is received
 								sendReceiveSocket.receive(receivePacket);
 								
-								if(this.port == -1){
-									this.port = receivePacket.getPort();
+								if(firstPort){
+									this.portt = receivePacket.getPort();
+									firstPort = false;
 								}
 								
-								if(receivePacket.getPort() != port){
+								if(receivePacket.getPort() != portt){
 									byte[] err5 = new byte[TOTAL_SIZE];
 									err5[0] = 0;
 									err5[1] = 5;
@@ -491,8 +497,8 @@ public class TFTPClient {
 									}
 									
 									if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] == 4
-											&& receivePacket.getData()[2] <= getAckCntL() && receivePacket.getData()[3] <= getAckCntR()){
-										System.out.print("good ack");
+											&& receivePacket.getData()[2] <= getAckCntL()+1 && receivePacket.getData()[3] <= getAckCntR()+1){
+										System.out.println("good ack");
 										break;
 									} else {
 										byte[] err4 = new byte[TOTAL_SIZE];
