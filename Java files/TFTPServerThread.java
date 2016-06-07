@@ -17,7 +17,7 @@ public class TFTPServerThread implements Runnable
 	private String mode;
 	private Request req;
 	private String errMsg;
-	private int port;
+	private int portt;
 	private InetAddress address;
 	private static boolean toPrint;
 
@@ -29,7 +29,7 @@ public class TFTPServerThread implements Runnable
 	{
 		this.receivedPacket = received;
 		this.toPrint = printing;
-		this.port = receivedPacket.getPort();
+		this.portt = receivedPacket.getPort();
 		this.address = receivedPacket.getAddress();
 		
 		try {
@@ -192,11 +192,8 @@ public class TFTPServerThread implements Runnable
 							try {
 								Socket.setSoTimeout(RETRANSMIT_TIME);
 								Socket.receive(receivePacket);
-								if(this.port == -1){
-									this.port = receivePacket.getPort();
-								}
 								
-								if(receivePacket.getPort() != port){
+								if(receivePacket.getPort() != portt){
 									byte[] err5 = new byte[TOTAL_SIZE];
 									err5[0] = 0;
 									err5[1] = 5;
@@ -237,7 +234,7 @@ public class TFTPServerThread implements Runnable
 									}
 									
 									if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] == 4
-											&& receivePacket.getData()[2] <= getAckCntL() && receivePacket.getData()[3] <= getAckCntR()){
+											&& receivePacket.getData()[2] <= getAckCntL()+1 && receivePacket.getData()[3] <= getAckCntR()+1){
 										System.out.print("good ack");
 										break;
 									} else {
@@ -418,11 +415,9 @@ public class TFTPServerThread implements Runnable
 					e.printStackTrace();
 					System.exit(1);
 				}
-				if(this.port == -1){
-					this.port = receivedPacket.getPort();
-				}
-				
-				if(receivedPacket.getPort() != port){
+				System.out.println("1"+ receivedPacket.getPort());
+				System.out.println("1"+ portt);
+				if(receivedPacket.getPort() != portt){
 					byte[] err5 = new byte[TOTAL_SIZE];
 					err5[0] = 0;
 					err5[1] = 5;
@@ -461,10 +456,14 @@ public class TFTPServerThread implements Runnable
 							System.out.println("Unknown Error");
 						}
 					}
-					
+					System.out.println("bitch");
+					System.out.println("bitch"+ receivedPacket.getData()[0]);
+					System.out.println("bitch"+ receivedPacket.getData()[1]);
+					System.out.println("bitch"+ receivedPacket.getData()[2]);
+					System.out.println("bitch" +receivedPacket.getData()[3]);
 					if(receivedPacket.getData()[0] == 0 && receivedPacket.getData()[1] == 3
-							&& receivedPacket.getData()[2] <= getAckCntL() && receivedPacket.getData()[3] <= getAckCntR()){
-						break;
+							&& receivedPacket.getData()[2] <= getAckCntL()+1 && receivedPacket.getData()[3] <= getAckCntR()+1){
+						
 					} else {
 						byte[] err4 = new byte[TOTAL_SIZE];
 						err4[0] = 0;
