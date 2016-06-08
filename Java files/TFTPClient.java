@@ -13,7 +13,7 @@ public class TFTPClient {
 	private static final int DATA_PACKET = 3; // DATA code
 	private static final int ACK_PACKET = 4; // ACK code
 	private static final int TIMEOUT = 60000; // 50 second timeout
-	private static final int RETRANSMIT_TIME = 10000; // 5 second retransmit
+	private static final int RETRANSMIT_TIME = 5000; // 10 second retransmit
 	private static final char QUIT = 'q'; // q key to quit at anytime
 	private static boolean toPrint; // to print or not
 	public static Mode test;
@@ -52,6 +52,7 @@ public class TFTPClient {
 		int cmd2 = 0;
 
 		while (true) {
+			System.out.print("***NEW CLIENT*** \n");
 			System.out.print("[1]Normal  [2]Test : ");
 			checkInput = re.nextLine();
 			try {
@@ -103,10 +104,12 @@ public class TFTPClient {
 				if (cmd2 == 1) {
 					toPrint = false;
 					break;
-				} else {
-					toPrint = true;
-					break;
-				}
+				} else if ( cmd2 == 2){
+ 					toPrint = true;
+ 					break;
+ 				} else {
+ 					System.out.println("reenter");
+ 				}
 			} catch (NumberFormatException e) {
 				System.out.println("Please enter a valid option");
 			}
@@ -228,7 +231,7 @@ public class TFTPClient {
 				byte[] msg = new byte[TOTAL_SIZE];
 				byte[] data = new byte[DATA_SIZE];
 				Boolean duplicateReceived = false;
-
+				int i = 0;
 				receivePacket = new DatagramPacket(msg, msg.length);
 
 				try {
@@ -243,7 +246,7 @@ public class TFTPClient {
 						// Break out of the forever loop after a packet is received
 						sendReceiveSocket.receive(receivePacket);
 						
-						/*/if(firstPort){
+						if(firstPort){
 							this.portt = receivePacket.getPort();
 							firstPort = false;
 						}
@@ -288,7 +291,7 @@ public class TFTPClient {
 								} else {
 									System.out.println("Unknown Error");
 								}
-							}*/
+							}
 							
 							if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] == 3
 									&& receivePacket.getData()[2] <= getAckCntL()+1 && receivePacket.getData()[3] <= getAckCntR()+1){
@@ -325,10 +328,16 @@ public class TFTPClient {
 								 System.exit(1);
 							}
 						}
-					//}
+					}
 				} catch (SocketTimeoutException e) {
-					System.out.println("Shutting down.");
-					System.exit(1);
+					System.out.println("try" + i); // DEBUGGING PURPOSES
+					if (i == 5) {
+						System.out.println("end"); // DEBUGGING PURPOSES
+						System.exit(1);
+					}
+					// Send the packet to the simulator
+					sendReceiveSocket.send(sendPacket);
+					i++;
 				}
 
 				if(receivePacket.getData()[1] == 5){
@@ -400,7 +409,14 @@ public class TFTPClient {
 				// Send the ACK packet
 				try {
 					sendReceiveSocket.send(sendPacket);
-				} catch (IOException e) {
+				} catch (SecurityException e){
+					// error 2
+				} catch (OutOfMemoryError ee){
+					// error 3
+				} catch (FileNotFoundException eee){
+					// error 1
+				}
+				catch (IOException e) {
 					e.printStackTrace();
 					System.exit(1);
 				}
@@ -455,7 +471,7 @@ public class TFTPClient {
 								// Break out of the forever loop after a packet is received
 								sendReceiveSocket.receive(receivePacket);
 								
-								/*
+								
 								if(firstPort){
 									this.portt = receivePacket.getPort();
 									firstPort = false;
@@ -499,7 +515,7 @@ public class TFTPClient {
 										} else {
 											System.out.println("Unknown Error");
 										}
-									}*/
+									}
 									
 									if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] == 4
 											&& receivePacket.getData()[2] <= getAckCntL()+1 && receivePacket.getData()[3] <= getAckCntR()+1){
@@ -536,7 +552,7 @@ public class TFTPClient {
 									     }
 										 System.exit(1);
 									}
-								//}
+								}
 							} catch (SocketTimeoutException e) {
 								System.out.println("try" + i); // DEBUGGING PURPOSES
 								if (i == 5) {
