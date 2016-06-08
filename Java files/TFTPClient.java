@@ -387,15 +387,38 @@ public class TFTPClient {
 				System.arraycopy(receivePacket.getData(), 4, data, 0, receivePacket.getLength() - 4);
 
 				if (!(ackCntL == 127 && ackCntR == 127)) {
-					if (ackCntR == 127) {
-						// If the data packet is correct (1 block number higher)
-						if (leftByte == ackCntL.byteValue() + 1 && rightByte == 0) {
-							out.write(data, 0, len - 4);
+					try{
+						if (ackCntR == 127) {
+							// If the data packet is correct (1 block number higher)
+							if (leftByte == ackCntL.byteValue() + 1 && rightByte == 0) {
+								out.write(data, 0, len - 4);
+							}
+						} else {
+							if (leftByte == ackCntL.byteValue() && rightByte == ackCntR.byteValue() + 1) {
+								out.write(data, 0, len - 4);
+							}
 						}
-					} else {
-						if (leftByte == ackCntL.byteValue() && rightByte == ackCntR.byteValue() + 1) {
-							out.write(data, 0, len - 4);
-						}
+					} catch (OutOfMemoryError e){
+						byte[] err5 = new byte[TOTAL_SIZE];
+						err5[0] = 0;
+						err5[1] = 5;
+						err5[2] = 0;
+						err5[3] = 3;
+						// the port is not the same
+						String error = "Unknown Port";
+						System.out.println("Error 3: No more memory space.");
+						System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
+						err5[error.getBytes().length+4] = 0;
+						// create the datagram Packet
+						DatagramPacket errorPacket5 = new DatagramPacket(err5, err5.length,  receivePacket.getAddress(),  receivePacket.getPort());
+						// send the pakcet and wait for the new packet
+						 try{
+							 sendReceiveSocket.send(errorPacket5);
+							 System.exit(1);
+					     } catch (IOException e1){
+					    	 e1.printStackTrace();
+					    	 System.exit(1);
+					     }
 					}
 				} else {
 					// The size limit for this TFTP application has been reached
@@ -452,7 +475,29 @@ public class TFTPClient {
 				}
 				incReadAckCounter(leftByte, rightByte);
 			}
-		} catch (IOException e) {
+		} catch (FileNotFoundException ee){
+			byte[] err5 = new byte[TOTAL_SIZE];
+			err5[0] = 0;
+			err5[1] = 5;
+			err5[2] = 0;
+			err5[3] = 2;
+			// the port is not the same
+			String error = "Access Denied";
+			System.out.println("Error 2: Access DENIED");
+			System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
+			err5[error.getBytes().length+4] = 0;
+			// create the datagram Packet
+			DatagramPacket errorPacket5 = new DatagramPacket(err5, err5.length,  receivePacket.getAddress(),  receivePacket.getPort());
+			// send the pakcet and wait for the new packet
+			 try{
+				 sendReceiveSocket.send(errorPacket5);
+				 System.exit(1);
+		     } catch (IOException e1){
+		    	 e1.printStackTrace();
+		    	 System.exit(1);
+		     }
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
