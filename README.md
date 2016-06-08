@@ -1,70 +1,73 @@
 # Things We Need
+- [x] Verbose/Quiet
+- [x] Error/NoError
+- [ ] <b> Server shutdown </b>
+- [x] Allow more than one transfer
+- [x] Timeout
 
-- [ ] Verbose/Quiet
-- [ ] Error/NoError
-- [ ] Server shutdown
-- [ ] Allow more than one transfer
-- [ ] Empty file
-- [ ] Timeout
+# Error 4 Cases
+- [ ] Text and stuff
 
 # Tests
 
-<b> READ </b><br><br>
+<b> READ </b>
+- [x] Empty file
 
 Normal <br>
-- [ ] Single block
-- [ ] Double block
-- [ ] 512 bytes
-- [ ] 132,000 bytes
+- [x] Single block
+- [x] Double block
+- [x] 512 bytes
+- [x] 132,000 bytes
 
 Duplicate <br>
-- [ ] RRQ
-- [ ] Single block, DATA
-- [ ] Single block, ACK
-- [ ] Double block, DATA
-- [ ] Double block, ACK
+- [x] RRQ
+- [x] Single block, DATA
+- [x] Single block, ACK
+- [x] Double block, DATA, 1
+- [x] Double block, ACK, 1
 
 Delay <br>
-- [ ] RRQ
-- [ ] Single block, DATA
-- [ ] Single block, ACK
-- [ ] Double block, DATA
-- [ ] Double block, ACK
+- [x] RRQ
+- [x] Single block, DATA
+- [x] Single block, ACK
+- [x] Double block, DATA, 1
+- [x] Double block, ACK, 1
 
 Lost <br>
-- [ ] RRQ
-- [ ] Single block, DATA
-- [ ] Single block, ACK
-- [ ] Double block, DATA
-- [ ] Double block, ACK
+- [ ] <b> RRQ </b>
+- [ ] <b> Single block, DATA </b>
+- [ ] <b> Single block, ACK </b>
+- [ ] <b> Double block, DATA, 1 </b>
+- [ ] <b> Double block, ACK, 1 </b>
 
 <hr>
 
-<b> WRITE </b><br><br>
+<b> WRITE </b>
+- [ ] <b> Empty file </b>
 
 Normal <br>
-- [ ] Single block
-- [ ] Double block
-- [ ] 512 bytes
-- [ ] 132,000 bytes
+- [x] Single block
+- [x] Double block
+- [ ] <b> 512 bytes </b>
+- [ ] <b> 132,000 bytes </b>
 
-Duplicate <br>
-- [ ] WRQ
-- [ ] Single block, DATA
+Duplicate <b>DOESNT SEND ACK BACK AT THE END</b><br>
+- [ ] <b> WRQ </b>
+- [x] Single block, DATA
 - [ ] Single block, ACK
-- [ ] Double block, DATA
-- [ ] Double block, ACK
+- [ ] Double block, DATA, 1 <b>VERY BROKEN</b>
+- [ ] Double block, ACK, 1
 
 Delay <br>
-- [ ] WRQ
-- [ ] Single block, DATA
-- [ ] Single block, ACK
-- [ ] Double block, DATA
-- [ ] Double block, ACK
+- [x] WRQ
+- [x] Single block, DATA
+- [x] Single block, ACK
+- [x] Double block, DATA, 1
+- [x] Double block, ACK, 1
 
 Lost <br>
-- [ ] WRQ
-- [ ] Single block, DATA
-- [ ] Single block, ACK
-- [ ] Double block, DATA
-- [ ] Double block, ACK
+- [ ] <b> WRQ </b>
+- [ ] <b> Single block, DATA </b>
+- [ ] <b> Single block, ACK </b>
+- [ ] <b> Double block, DATA, 1 </b>
+- [ ] <b> Double block, ACK, 1 </b>
