@@ -6,7 +6,17 @@
 - [x] Timeout
 
 # Error 4 Cases
-- [ ] Text and stuff
+- [ ] Invalid Opcode DATA
+- [ ] Invalid Opcode ACK
+- [ ] Invalid Opcode RRQ
+- [ ] Invalid Opcode WRQ
+- [ ] Invalid Block # ACK
+- [ ] Invalid Block # DATA
+- [ ] Check for First 0 in RRQ/WRQ
+- [ ] Invalid Filename in RRQ/WRQ
+- [ ] Check for Second 0 in RRQ/WRQ
+- [ ] Invalid mode in RRQ/WRQ
+
 
 # Tests
 
