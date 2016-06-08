@@ -1,3 +1,5 @@
+
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -586,7 +588,7 @@ public class TFTPServerThread implements Runnable
 								out.write(data,0,receivedPacket.getLength()-4);
 							}
 						}
-					} catch (OutOfMemoryError e) {
+					} catch (IOException e) {
 						
 						byte[] err5 = new byte[TOTAL_SIZE];
 						err5[0] = 0;
@@ -681,8 +683,27 @@ public class TFTPServerThread implements Runnable
 		     }
 			 
 		} catch(IOException e){
-			e.printStackTrace();
-			System.exit(1);
+			
+			byte[] err5 = new byte[TOTAL_SIZE];
+			err5[0] = 0;
+			err5[1] = 5;
+			err5[2] = 0;
+			err5[3] = 3;
+			// the port is not the same
+			String error = "No more memory space";
+			System.out.println("Error 3: No more memory space.");
+			System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
+			err5[error.getBytes().length+4] = 0;
+			// create the datagram Packet
+			DatagramPacket errorPacket5 = new DatagramPacket(err5, err5.length,  receivedPacket.getAddress(),  receivedPacket.getPort());
+			// send the pakcet and wait for the new packet
+			 try{
+				 Socket.send(errorPacket5);
+				 System.exit(1);
+		     } catch (IOException e1){
+		    	 e1.printStackTrace();
+		    	 System.exit(1);
+		     }
 		}
 	}
 	
