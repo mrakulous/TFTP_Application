@@ -1,4 +1,3 @@
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -92,15 +91,27 @@ public class TFTPServerThread implements Runnable
 			err4[2] = 0;
 			err4[3] = 4;
 			// the port is not the same
-			String error;
+			String error = "";
 			if(receivedPacket.getData()[0] != 0){
 				error = "the first byte is not a 0 opcode";
 				System.out.println(error);
-			} else if (receivedPacket.getData()[1] != 4) {
-				error = "the second byte is not a ack(4) opcode";
+			} else if (receivedPacket.getData()[1] != 1 || receivedPacket.getData()[1] != 2) {
+				error = "the second byte is not a read or write opcode";
 				System.out.println(error);
-			} else {
-				error = "the block num is higher than the one received";
+			} else if(fileNameSize==len){
+				error = "didn't find a 0 byte between fileName and modeName";
+				System.out.println(error);
+			} else if(fileNameSize==2){
+				error = "filename is 0 bytes long";
+				System.out.println(error);
+			} else if(modecount==len){
+				error = "didn't find a 0 byte after modeName";
+				System.out.println(error);
+			} else if(modecount==fileNameSize+1){
+				error = "filename is 0 bytes long";
+				System.out.println(error);
+			} else if(modecount!=len-1){
+				error = "other stuff at end of packet";
 				System.out.println(error);
 			}
 			System.arraycopy(error.getBytes(), 0, err4, 4, error.getBytes().length);
@@ -134,6 +145,37 @@ public class TFTPServerThread implements Runnable
 		
 		try {
 			//read in file
+			try {
+				File input = new File(filename);
+				Scanner read = new Scanner(input);
+				
+			} catch (FileNotFoundException e) {//CHECK FOR FILE ON SERVER
+				
+				byte[] err5 = new byte[TOTAL_SIZE];
+				err5[0] = 0;
+				err5[1] = 5;
+				err5[2] = 0;
+				err5[3] = 1;
+				// the port is not the same
+				String error = "File Not Found";
+				System.out.println("Error 1: File Not Found");
+				System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
+				err5[error.getBytes().length+4] = 0;
+				// create the datagram Packet
+				DatagramPacket errorPacket5 = new DatagramPacket(err5, err5.length,  receivedPacket.getAddress(),  receivedPacket.getPort());
+				// send the pakcet and wait for the new packet
+				 try{
+					 Socket.send(errorPacket5);
+					 System.exit(1);
+			     } catch (IOException e1){
+			    	 e1.printStackTrace();
+			    	 System.exit(1);
+			     }
+				
+			}//end try-catch
+			
+			
+			
 			BufferedInputStream in = new BufferedInputStream(new FileInputStream(filename));
 			do {
 				byte[] msg = new byte[TOTAL_SIZE];
@@ -237,7 +279,7 @@ public class TFTPServerThread implements Runnable
 										}
 									}
 									
-									if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] == 4
+									if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] < 0 && receivePacket.getData()[1] > 6
 											&& receivePacket.getData()[2] <= getAckCntL()+1 && receivePacket.getData()[3] <= getAckCntR()+1){
 										break;
 									} else {
@@ -354,8 +396,19 @@ public class TFTPServerThread implements Runnable
         Byte rightByte = 0;	
    		
 		try {
+			
+				//read in file
+				
+					
+				
 			// The file to get the data from.
-			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("new"+filename));
+			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(filename));
+			
+					
+					
+					
+					
+				
    			
 			for(;;) {
 				byte[] msg = new byte[TOTAL_SIZE];
@@ -476,7 +529,7 @@ public class TFTPServerThread implements Runnable
 						System.out.println("bitch" +receivedPacket.getData()[3]);
 						
 						
-						if(receivedPacket.getData()[0] == 0 && receivedPacket.getData()[1] == 3
+						if(receivedPacket.getData()[0] == 0 && receivedPacket.getData()[1] < 0 && receivedPacket.getData()[1] > 6
 								&& receivedPacket.getData()[2] <= getAckCntL()+1 && receivedPacket.getData()[3] <= getAckCntR()+1){
 							
 						} else {
@@ -521,15 +574,41 @@ public class TFTPServerThread implements Runnable
 				System.arraycopy(receivedPacket.getData(), 4, data, 0, receivedPacket.getLength()-4);
 				
 				if(!(ackCntL == 127 && ackCntR == 127)) {
-					if(ackCntR == 127){
-						// if the data packet is correct (1 block number higher)
-						if(leftByte == ackCntL.byteValue()+1 && rightByte == 0) {
-							out.write(data,0,receivedPacket.getLength()-4);
+					
+					try {
+						if(ackCntR == 127){
+							// if the data packet is correct (1 block number higher)
+							if(leftByte == ackCntL.byteValue()+1 && rightByte == 0) {
+								out.write(data,0,receivedPacket.getLength()-4);
+							}
+						} else {
+							if (leftByte == ackCntL.byteValue() && rightByte== ackCntR.byteValue()+1){	
+								out.write(data,0,receivedPacket.getLength()-4);
+							}
 						}
-					} else {
-						if (leftByte == ackCntL.byteValue() && rightByte== ackCntR.byteValue()+1){	
-							out.write(data,0,receivedPacket.getLength()-4);
-						}
+					} catch (OutOfMemoryError e) {
+						
+						byte[] err5 = new byte[TOTAL_SIZE];
+						err5[0] = 0;
+						err5[1] = 5;
+						err5[2] = 0;
+						err5[3] = 3;
+						// the port is not the same
+						String error = "Unknown Port";
+						System.out.println("Error 3: No more memory space.");
+						System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
+						err5[error.getBytes().length+4] = 0;
+						// create the datagram Packet
+						DatagramPacket errorPacket5 = new DatagramPacket(err5, err5.length,  receivedPacket.getAddress(),  receivedPacket.getPort());
+						// send the pakcet and wait for the new packet
+						 try{
+							 Socket.send(errorPacket5);
+							 System.exit(1);
+					     } catch (IOException e1){
+					    	 e1.printStackTrace();
+					    	 System.exit(1);
+					     }
+						
 					}
 				} else {
 					System.out.println("Memory limit reached. Aborting...");
@@ -579,8 +658,28 @@ public class TFTPServerThread implements Runnable
 				}
 			}
 		} catch(FileNotFoundException e){
-			e.printStackTrace();
-			System.exit(1);
+			
+			byte[] err5 = new byte[TOTAL_SIZE];
+			err5[0] = 0;
+			err5[1] = 5;
+			err5[2] = 0;
+			err5[3] = 3;
+			// the port is not the same
+			String error = "Access Denied";
+			System.out.println("Error 3: Access DENIED");
+			System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
+			err5[error.getBytes().length+4] = 0;
+			// create the datagram Packet
+			DatagramPacket errorPacket5 = new DatagramPacket(err5, err5.length,  receivedPacket.getAddress(),  receivedPacket.getPort());
+			// send the pakcet and wait for the new packet
+			 try{
+				 Socket.send(errorPacket5);
+				 System.exit(1);
+		     } catch (IOException e1){
+		    	 e1.printStackTrace();
+		    	 System.exit(1);
+		     }
+			 
 		} catch(IOException e){
 			e.printStackTrace();
 			System.exit(1);
