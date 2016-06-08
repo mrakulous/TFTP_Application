@@ -49,7 +49,7 @@ Normal <br>
 - [x] Single block
 - [x] Double block
 - [x] 512 bytes 
-- [ ] <b> 132,000 bytes </b>
+- [x] 132,000 bytes
 
 Duplicate <b>DOESNT SEND ACK BACK AT THE END</b><br>
 - [ ] <b> WRQ </b>
