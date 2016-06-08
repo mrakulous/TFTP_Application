@@ -21,8 +21,8 @@ Duplicate <br>
 - [ ] RRQ
 - [ ] Single block, DATA
 - [ ] Single block, ACK
-- [ ] Double block, DATA (works for block 1 with 3 second delay)
-- [ ] <b> Double block, ACK (Problem #5) </b>
+- [ ] Double block, DATA
+- [ ] Double block, ACK
 
 Delay <br>
 - [ ] RRQ
@@ -32,11 +32,11 @@ Delay <br>
 - [ ] Double block, ACK
 
 Lost <br>
-- [ ] <b> RRQ </b>
-- [ ] <b> Single block, DATA </b>
-- [ ] <b> Single block, ACK </b>
-- [ ] <b> Double block, DATA </b>
-- [ ] <b> Double block, ACK </b>
+- [ ] RRQ
+- [ ] Single block, DATA
+- [ ] Single block, ACK
+- [ ] Double block, DATA
+- [ ] Double block, ACK
 
 <hr>
 
