@@ -53,7 +53,7 @@ Normal <br>
 
 Duplicate <b>DOESNT SEND ACK BACK AT THE END</b><br>
 - [x] WRQ
-- [ ] <b> Single block, DATA </b>
+- [x] Single block, DATA
 - [ ] <b> Single block, ACK </b>
 - [ ] <b> Double block, DATA, 1  VERY BROKEN </b>
 - [ ] <b> Double block, ACK, 1 </b>
