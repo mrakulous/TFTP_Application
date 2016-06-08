@@ -19,7 +19,6 @@ public class TFTPClient {
 	public static Mode test;
 	private boolean firstPort = true;
 	private int portt;
-	private Boolean readOperationCompleted = false;
 
 	public static enum Request {
 		READ, WRITE, ERROR
@@ -244,12 +243,7 @@ public class TFTPClient {
 						// Break out of the forever loop after a packet is received
 						sendReceiveSocket.receive(receivePacket);
 						
-						if(readOperationCompleted) {
-							System.out.println("^^^^^^^ DUPLICATE DATA RECEIVED. ^^^^^^^");
-							duplicateReceived = true;
-						}
-						
-						if(firstPort){
+						/*/if(firstPort){
 							this.portt = receivePacket.getPort();
 							firstPort = false;
 						}
@@ -294,7 +288,7 @@ public class TFTPClient {
 								} else {
 									System.out.println("Unknown Error");
 								}
-							}
+							}*/
 							
 							if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] == 3
 									&& receivePacket.getData()[2] <= getAckCntL()+1 && receivePacket.getData()[3] <= getAckCntR()+1){
@@ -322,7 +316,7 @@ public class TFTPClient {
 								// create the datagram Packet
 								DatagramPacket errorPacket4 = new DatagramPacket(err4, err4.length,  receivePacket.getAddress(),  receivePacket.getPort());
 								// send the packet and wait for the new packet
-								 try{
+								 try {
 									 sendReceiveSocket.send(errorPacket4);
 							     } catch (IOException e){
 							    	 e.printStackTrace();
@@ -331,7 +325,7 @@ public class TFTPClient {
 								 System.exit(1);
 							}
 						}
-					}
+					//}
 				} catch (SocketTimeoutException e) {
 					System.out.println("Shutting down.");
 					System.exit(1);
@@ -423,8 +417,7 @@ public class TFTPClient {
 					// This is the last data packet
 					out.close();
 					System.out.println("#####  OPERATION COMPLETED.  #####" + "\n");
-					readOperationCompleted = true;
-					System.out.println("readOperationCompleted has been set to true ************************************");
+					return;
 				}
 				incReadAckCounter(leftByte, rightByte);
 			}
@@ -462,6 +455,7 @@ public class TFTPClient {
 								// Break out of the forever loop after a packet is received
 								sendReceiveSocket.receive(receivePacket);
 								
+								/*
 								if(firstPort){
 									this.portt = receivePacket.getPort();
 									firstPort = false;
@@ -505,7 +499,7 @@ public class TFTPClient {
 										} else {
 											System.out.println("Unknown Error");
 										}
-									}
+									}*/
 									
 									if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] == 4
 											&& receivePacket.getData()[2] <= getAckCntL()+1 && receivePacket.getData()[3] <= getAckCntR()+1){
@@ -542,7 +536,7 @@ public class TFTPClient {
 									     }
 										 System.exit(1);
 									}
-								}
+								//}
 							} catch (SocketTimeoutException e) {
 								System.out.println("try" + i); // DEBUGGING PURPOSES
 								if (i == 5) {
@@ -624,6 +618,8 @@ public class TFTPClient {
 
 				if (dataCheck != -1) {
 					System.arraycopy(data, 0, msg, 4, dataCheck);
+				} else {
+					dataCheck = 0;
 				}
 
 				if(test == Mode.TEST){
