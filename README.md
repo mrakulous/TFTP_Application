@@ -43,12 +43,12 @@ Lost <br>
 <hr>
 
 <b> WRITE </b>
-- [ ] <b> Empty file </b>
+- [x] Empty file
 
 Normal <br>
 - [x] Single block
 - [x] Double block
-- [ ] <b> 512 bytes </b>
+- [x] 512 bytes 
 - [ ] <b> 132,000 bytes </b>
 
 Duplicate <b>DOESNT SEND ACK BACK AT THE END</b><br>
