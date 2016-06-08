@@ -1,3 +1,4 @@
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -196,7 +197,7 @@ public class TFTPServerThread implements Runnable
 								Socket.setSoTimeout(RETRANSMIT_TIME);
 								Socket.receive(receivePacket);
 								
-								if(receivePacket.getPort() != portt){
+								/*if(receivePacket.getPort() != portt){
 									byte[] err5 = new byte[TOTAL_SIZE];
 									err5[0] = 0;
 									err5[1] = 5;
@@ -235,7 +236,7 @@ public class TFTPServerThread implements Runnable
 											System.out.println("Unknown Error");
 										}
 									}
-									
+									*/
 									if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] == 4
 											&& receivePacket.getData()[2] <= getAckCntL()+1 && receivePacket.getData()[3] <= getAckCntR()+1){
 										break;
@@ -270,7 +271,7 @@ public class TFTPServerThread implements Runnable
 									     }
 										 System.exit(1);
 									}
-								}
+								//}
 							} catch (SocketTimeoutException e) {
 								System.out.println("try"+i);
 								if(i == 5){
@@ -418,102 +419,105 @@ public class TFTPServerThread implements Runnable
 				receivedPacket = new DatagramPacket(msg, msg.length);
 				
 				try {
-					Socket.receive(receivedPacket);
-				} catch (IOException e) {
-					e.printStackTrace();
-					System.exit(1);
-				}
-				System.out.println("1"+ receivedPacket.getPort());
-				System.out.println("1"+ portt);
+					//for(;;){
+						//Socket.setSoTimeout(10000);
+						Socket.receive(receivedPacket);
 				
-				if(firstPort){
-					this.portt = receivedPacket.getPort();
-					firstPort = false;
-				}
 				
-				if(receivedPacket.getPort() != portt){
-					byte[] err5 = new byte[TOTAL_SIZE];
-					err5[0] = 0;
-					err5[1] = 5;
-					err5[2] = 0;
-					err5[3] = 5;
-					// the port is not the same
-					String error = "Unknown Port";
-					System.out.println("Error 5: unknown port");
-					System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
-					err5[error.getBytes().length+4] = 0;
-					// create the datagram Packet
-					DatagramPacket errorPacket5 = new DatagramPacket(err5, err5.length,  receivedPacket.getAddress(),  receivedPacket.getPort());
-					// send the pakcet and wait for the new packet
-					 try{
-						 Socket.send(errorPacket5);
-				     } catch (IOException e){
-				    	 e.printStackTrace();
-				    	 System.exit(1);
-				     }
-				} else {
-					if(receivedPacket.getData()[1] == 5){
-						if(receivedPacket.getData()[3] == 1){
-							System.out.println("Error 1: this file cannot be found on the server side");
-						} else if(receivedPacket.getData()[3] == 2){
-							System.out.println("Error 2: Server doesnt have permission to this file on the server side");
-						}else if(receivedPacket.getData()[3] == 3){
-							System.out.println("Error 3: Server ran out of memory to write");
-						}else if(receivedPacket.getData()[3] == 4){
-							System.out.println("Error 4: Format error on the packet");
-							System.exit(1);/// EXIT
-						}else if(receivedPacket.getData()[3] == 5){
-							System.out.println("Error 5: Tip invalid");
-						}else if(receivedPacket.getData()[3] == 6){
-							System.out.println("Cannot write to server. Server has the same file");// not sure what to do
-						} else {
-							System.out.println("Unknown Error");
-						}
+				
+					/*if(firstPort){
+						this.portt = receivedPacket.getPort();
+						firstPort = false;
 					}
-					System.out.println("bitch");
-					System.out.println("bitch"+ receivedPacket.getData()[0]);
-					System.out.println("bitch"+ receivedPacket.getData()[1]);
-					System.out.println("bitch"+ receivedPacket.getData()[2]);
-					System.out.println("bitch" +receivedPacket.getData()[3]);
-					if(receivedPacket.getData()[0] == 0 && receivedPacket.getData()[1] == 3
-							&& receivedPacket.getData()[2] <= getAckCntL()+1 && receivedPacket.getData()[3] <= getAckCntR()+1){
-						
-					} else {
-						byte[] err4 = new byte[TOTAL_SIZE];
-						err4[0] = 0;
-						err4[1] = 5;
-						err4[2] = 0;
-						err4[3] = 4;
+					
+					if(receivedPacket.getPort() != portt){
+						byte[] err5 = new byte[TOTAL_SIZE];
+						err5[0] = 0;
+						err5[1] = 5;
+						err5[2] = 0;
+						err5[3] = 5;
 						// the port is not the same
-						String error;
-						if(receivedPacket.getData()[0] != 0){
-							error = "the first byte is not a 0 opcode";
-							System.out.println(error);
-						} else if (receivedPacket.getData()[1] != 4) {
-							error = "the second byte is not a ack(4) opcode";
-							System.out.println(error);
-						} else {
-							error = "the block num is higher than the one received";
-							System.out.println(error);
-						}
-						System.arraycopy(error.getBytes(), 0, err4, 4, error.getBytes().length);
-						err4[error.getBytes().length+4] = 0;
+						String error = "Unknown Port";
+						System.out.println("Error 5: unknown port");
+						System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
+						err5[error.getBytes().length+4] = 0;
 						// create the datagram Packet
-						DatagramPacket errorPacket4 = new DatagramPacket(err4, err4.length,  receivedPacket.getAddress(),  receivedPacket.getPort());
-						// send the packet and wait for the new packet
+						DatagramPacket errorPacket5 = new DatagramPacket(err5, err5.length,  receivedPacket.getAddress(),  receivedPacket.getPort());
+						// send the pakcet and wait for the new packet
 						 try{
-							 Socket.send(errorPacket4);
+							 Socket.send(errorPacket5);
 					     } catch (IOException e){
 					    	 e.printStackTrace();
 					    	 System.exit(1);
 					     }
-						 System.exit(1);
-					}
+					} else {
+						if(receivedPacket.getData()[1] == 5){
+							if(receivedPacket.getData()[3] == 1){
+								System.out.println("Error 1: this file cannot be found on the server side");
+							} else if(receivedPacket.getData()[3] == 2){
+								System.out.println("Error 2: Server doesnt have permission to this file on the server side");
+							}else if(receivedPacket.getData()[3] == 3){
+								System.out.println("Error 3: Server ran out of memory to write");
+							}else if(receivedPacket.getData()[3] == 4){
+								System.out.println("Error 4: Format error on the packet");
+								System.exit(1);/// EXIT
+							}else if(receivedPacket.getData()[3] == 5){
+								System.out.println("Error 5: Tip invalid");
+							}else if(receivedPacket.getData()[3] == 6){
+								System.out.println("Cannot write to server. Server has the same file");// not sure what to do
+							} else {
+								System.out.println("Unknown Error");
+							}
+						}
+						System.out.println("bitch");
+						System.out.println("bitch"+ receivedPacket.getData()[0]);
+						System.out.println("bitch"+ receivedPacket.getData()[1]);
+						System.out.println("bitch"+ receivedPacket.getData()[2]);
+						System.out.println("bitch" +receivedPacket.getData()[3]);
+						
+						*/
+						if(receivedPacket.getData()[0] == 0 && receivedPacket.getData()[1] == 3
+								&& receivedPacket.getData()[2] <= getAckCntL()+1 && receivedPacket.getData()[3] <= getAckCntR()+1){
+							
+						} else {
+							byte[] err4 = new byte[TOTAL_SIZE];
+							err4[0] = 0;
+							err4[1] = 5;
+							err4[2] = 0;
+							err4[3] = 4;
+							// the port is not the same
+							String error;
+							if(receivedPacket.getData()[0] != 0){
+								error = "the first byte is not a 0 opcode";
+								System.out.println(error);
+							} else if (receivedPacket.getData()[1] != 4) {
+								error = "the second byte is not a ack(4) opcode";
+								System.out.println(error);
+							} else {
+								error = "the block num is higher than the one received";
+								System.out.println(error);
+							}
+							System.arraycopy(error.getBytes(), 0, err4, 4, error.getBytes().length);
+							err4[error.getBytes().length+4] = 0;
+							// create the datagram Packet
+							DatagramPacket errorPacket4 = new DatagramPacket(err4, err4.length,  receivedPacket.getAddress(),  receivedPacket.getPort());
+							// send the packet and wait for the new packet
+							 try{
+								 Socket.send(errorPacket4);
+						     } catch (IOException e){
+						    	 e.printStackTrace();
+						    	 System.exit(1);
+						     }
+							 System.exit(1);
+						}
+					//}
+				} catch (SocketTimeoutException e ) {
+					System.out.print("didnt receive");
 				}
-				
 				leftByte = new Byte(receivedPacket.getData()[2]);
 				rightByte = new Byte(receivedPacket.getData()[3]);
 				
+				System.out.println(""+receivedPacket.getLength());
 				System.arraycopy(receivedPacket.getData(), 4, data, 0, receivedPacket.getLength()-4);
 				
 				if(!(ackCntL == 127 && ackCntR == 127)) {
