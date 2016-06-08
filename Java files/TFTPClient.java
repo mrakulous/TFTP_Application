@@ -121,8 +121,8 @@ public class TFTPClient {
 		while (true) {
 			try {
 				System.out.print("Enter filename to " + req.toString() + " (\"q\" to Quit): ");
-				fName = re.nextLine();
-				if (fName.equals(QUIT)) {
+				filename = re.nextLine();
+				if (filename.equals(QUIT)) {
 					shutDown();
 				}
 				if(req.equals(Request.WRITE))
@@ -137,12 +137,12 @@ public class TFTPClient {
 				// workingDir = System.getProperty("user.dir");
 				// filepath = workingDir + "\\" + filename;
 				 if(req.equals(Request.WRITE)){
-					 File input = new File(fName);
+					 File input = new File(filename);
 					 Scanner read = new Scanner(input); // Used to verify if the file is valid
 				 }
 				
 				
-				fullPath = filePath + "\\" + fName;
+				fullPath = filePath + "\\" + filename;
 				break;
 			} catch (FileNotFoundException e) {
 				System.out.println("File does not exist.");
@@ -167,7 +167,7 @@ public class TFTPClient {
 			}
 			System.out.println("Invalid input.");
 		}
-		run(fullPath, mode, fName, req);
+		run(fullPath, mode, filename, req);
 		System.out.println("*** Transfer Complete ***\n");
 	}
 
@@ -532,7 +532,7 @@ public class TFTPClient {
 										}
 									}
 									
-									if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] < 0 && receivePacket.getData()[1] > 6
+									if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] > 0 && receivePacket.getData()[1] < 6
 											&& receivePacket.getData()[2] <= getAckCntL()+1 && receivePacket.getData()[3] <= getAckCntR()+1){
 										System.out.println("good ack");
 										break;
