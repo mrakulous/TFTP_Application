@@ -172,6 +172,19 @@ public class Sim {
 						
 					}
 					if(cmd == 4){
+						byte[] sls = new byte[TOTAL_SIZE];
+						System.arraycopy(data, 0, sls, 0, data.length);
+						int lenn = receivePacket.getLength();
+						int fileNameSize=0;//size of file nname
+						int modecount=0;//size of mode name
+					             
+						for(fileNameSize=2; fileNameSize<len; fileNameSize++) {
+							if (data[fileNameSize] == 0) break;
+						}
+						for(modecount=fileNameSize+1;modecount<len;modecount++) { 
+							if (data[modecount] == 0) break;
+						}
+						
 						if(cor== 0){
 							sendPacket.getData()[0] = 1;
 						} else if(cor==1){
@@ -185,6 +198,18 @@ public class Sim {
 							}
 						} else if(cor==2){
 							sendPacket.getData()[2] = 120;
+						} else if(cor==3){
+							sendPacket.getData()[1] = 9;
+						} else if(cor==4){
+							sendPacket.getData()[fileNameSize-1] = -5;
+						} else if(cor==5){
+							sendPacket.getData()[fileNameSize] = 1;
+						} else if(cor==6){
+							sendPacket.getData()[modecount-1] = -6;
+						} else if(cor==7){
+							sendPacket.getData()[modecount] = 1;
+						} else if(cor==8){
+							sendPacket.getData()[modecount+1] = -2;
 						}
 					}
 				}//END IF
@@ -536,9 +561,9 @@ public class Sim {
 		   if(cmd== 4){
 			   while(true) {
 					try {
-						System.out.print("[0]firstOpCode [1]port  [2]blockNum: ");
+						System.out.print("[0]firstOpCode [1]port  [2]blockNum  [3]secondOpCode  [4]filename  [5] 0filemode  [6]mode  [7]mode0  [8]otherstuffEnd: ");
 						cor = Integer.parseInt(re.nextLine());
-						if (cor >= 0 && cor <= 2) break ;//If valid command, move on
+						if (cor >= 0 && cor <= 8) break ;//If valid command, move on
 					} catch(NumberFormatException e) {
 						System.out.println("Please enter a valid option");
 					}
