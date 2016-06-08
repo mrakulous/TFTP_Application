@@ -53,10 +53,10 @@ Normal <br>
 
 Duplicate <b>DOESNT SEND ACK BACK AT THE END</b><br>
 - [ ] <b> WRQ </b>
-- [x] Single block, DATA
-- [ ] Single block, ACK
-- [ ] Double block, DATA, 1 <b>VERY BROKEN</b>
-- [ ] Double block, ACK, 1
+- [ ] <b> Single block, DATA </b>
+- [ ] <b> Single block, ACK </b>
+- [ ] <b> Double block, DATA, 1  VERY BROKEN </b>
+- [ ] <b> Double block, ACK, 1 </b>
 
 Delay <br>
 - [x] WRQ
