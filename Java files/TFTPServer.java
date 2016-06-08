@@ -25,15 +25,18 @@ public class TFTPServer {
 	   int cmd = 0;
 	   while (true) {
 		   try {
+			   System.out.print("***NEW SERVER*** \n");
 				System.out.print("[1]Quiet  [2]Verbose : ");
 				cmd = Integer.parseInt(re.nextLine());
 				if (cmd == 1) {
 					toPrint = false;
 					break;
-				} else {
-					toPrint = true;
-					break;
-				}
+				}else if ( cmd == 2){
+ 					toPrint = true;
+ 					break;
+ 				} else {
+ 					System.out.println("reenter");
+ 				}
 			} catch (NumberFormatException e) {
 				System.out.println("Invalid input.");
 			}
