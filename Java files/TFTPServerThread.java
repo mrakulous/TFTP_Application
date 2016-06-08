@@ -594,7 +594,7 @@ public class TFTPServerThread implements Runnable
 						err5[2] = 0;
 						err5[3] = 3;
 						// the port is not the same
-						String error = "Unknown Port";
+						String error = "No more memory space";
 						System.out.println("Error 3: No more memory space.");
 						System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
 						err5[error.getBytes().length+4] = 0;
@@ -663,10 +663,10 @@ public class TFTPServerThread implements Runnable
 			err5[0] = 0;
 			err5[1] = 5;
 			err5[2] = 0;
-			err5[3] = 3;
+			err5[3] = 2;
 			// the port is not the same
 			String error = "Access Denied";
-			System.out.println("Error 3: Access DENIED");
+			System.out.println("Error 2: Access DENIED");
 			System.arraycopy(error.getBytes(), 0, err5, 4, error.getBytes().length);
 			err5[error.getBytes().length+4] = 0;
 			// create the datagram Packet
