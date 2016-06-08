@@ -7,6 +7,7 @@ public class Sim {
 	private DatagramSocket receiveSocket, sendSocket, sendReceiveSocket;
 	private static int cmd;
 	private static int cmd2;
+	private static int cor;
 	private static int packetType;
 	private static Byte blockNum;
 	private byte[] data;
@@ -26,11 +27,17 @@ public class Sim {
 	private static boolean toPrint;
 	private boolean firstReq = true;
 	private static boolean read;
+	private  boolean lost = false;
 	
 	private int ACKNumber = -1;
 	private boolean backToBeginning = false;
 	private static boolean firstWait = true;
 	private static boolean restartSim = true;
+	private boolean lose = false;
+	
+	private static String IPString = "";
+	private static InetAddress serverIP = null;
+	private InetAddress clientIP = null;
 
 	public Sim() {
 		try {
@@ -47,9 +54,6 @@ public class Sim {
 
 		int j=0, len;
 		String contents;
-		
-
-		
 		
 		for(;;) {
 			data = new byte[TOTAL_SIZE];
@@ -78,6 +82,8 @@ public class Sim {
 				System.exit(1);
 			}
 
+			clientIP = receivePacket.getAddress();
+			
 			if(firstReq){
 				if(data[1] == 1){//1 for read
 					read = true;
@@ -109,8 +115,15 @@ public class Sim {
 				Serport = serverPort;
 			}
 	
+			try {
+				serverIP = InetAddress.getByName(IPString);
+			} catch (UnknownHostException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
 			//CREATE SENDPACKET TO SERVER
-			sendPacket = new DatagramPacket(data, len, receivePacket.getAddress(), Serport);
+			sendPacket = new DatagramPacket(data, len, serverIP, Serport);
 	
 			//IF NOT NORMAL
 			
@@ -149,10 +162,29 @@ public class Sim {
 						}
 					} 
 					if(cmd==3){
-						try {
-							lost(sendPacket);
-						} catch (UnknownHostException e) {
-							e.printStackTrace();
+						if(lost == false && lose == false){
+							System.out.println("############### LOST!!!!!!!!!!! ########");
+							lost = true;
+						} else {
+							lost = false;
+							break;
+						}
+						
+					}
+					if(cmd == 4){
+						if(cor== 0){
+							sendPacket.getData()[0] = 1;
+						} else if(cor==1){
+							if(lost == false && lose == false){
+								sendPacket.setPort(0);
+								lost = true;
+								lose = true;
+							} else {
+								lost = false;
+								break;
+							}
+						} else if(cor==2){
+							sendPacket.getData()[2] = 120;
 						}
 					}
 				}//END IF
@@ -169,12 +201,15 @@ public class Sim {
 		/***********************************************/
 		
 		firstTime = false;
-		try {//SEND PACKET TO SERVER
-			sendReceiveSocket.send(sendPacket);
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.exit(1);
+		if(lost == false){
+			try {//SEND PACKET TO SERVER
+				sendReceiveSocket.send(sendPacket);
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.exit(1);
+			}
 		}
+		
 		
 		//System.out.println("4"+ Serport);
 		receivePacket = new DatagramPacket(data, data.length);
@@ -207,7 +242,7 @@ public class Sim {
 			
 			if (toPrint == true) {
 				System.out.println("Simulator: Packet received from server.");
-				System.out.println("From host: " + receivePacket.getAddress());
+				System.out.println("From host: " + serverIP);
 			}
 			
 			setServerPort(receivePacket.getPort());
@@ -244,11 +279,11 @@ public class Sim {
 	        	}
 	        }
 	
-			sendPacket = new DatagramPacket(data, receivePacket.getLength(), receivePacket.getAddress(), getClientPort());
+			sendPacket = new DatagramPacket(data, receivePacket.getLength(), clientIP, getClientPort());
 	
 			if (toPrint == true) {
 				System.out.println("Simulator: Sending packet to client.");
-				System.out.println("To host: " + sendPacket.getAddress());
+				System.out.println("To host: " + clientIP);
 				System.out.println("Destination host port: " + sendPacket.getPort());
 			}
 			
@@ -308,24 +343,43 @@ public class Sim {
 					}
 					if(cmd ==2){
 						try {
+							System.out.println("############### Delay_2 ###############");
 							delay();
 						} catch (SocketException e) {
 							e.printStackTrace();
 						}
 					} 
 					if(cmd==3){
-						try {
-	    				    lost(sendPacket);//lost packet 
-						} catch (UnknownHostException e) {
-							e.printStackTrace();
+						if(lost == false && lose == false){
+							System.out.println("############### Lost_2 ###############");
+							lost = true;
+							lose = true;
+						} else { 
+							lost = false;
+							break;
+						}
+					}
+					if(cmd == 4){
+						if(cor== 0){
+							sendPacket.getData()[0] = 1;
+						} else if(cor==1){
+							if(lost == false && lose == false){
+								sendPacket.setPort(0);
+								lost = true;
+								lose = true;
+							} else {
+								lost = false;
+								break;
+							}
+						} else if(cor==2){
+							sendPacket.getData()[2] = 120;
 						}
 					}
 				}
 	        }//end if
-			
-			if(!(cmd==3)){
-				
+			if(lost == false){
 				try {
+					System.out.println(""+sendPacket.getData()[0]);
 					sendSocket.send(sendPacket);
 					break;
 				} catch (IOException e) {
@@ -333,6 +387,7 @@ public class Sim {
 					System.exit(1);
 				}
 			}
+			
 		}//END FOR LOOP
 	}
 
@@ -340,7 +395,7 @@ public class Sim {
 	   try {
 		   	if (toPrint == true) {
 			   System.out.println("Simulator: Sending packet to client.");
-			   System.out.println("To host: " + sendPacket.getAddress());
+			   System.out.println("To host: " + clientIP);
 			   System.out.println("Destination host port: " + sendPacket.getPort());
 		   	}
 		   	
@@ -406,7 +461,7 @@ public class Sim {
 	private void lost(DatagramPacket sendPacket) throws UnknownHostException {
 	   //byte[] ipAddr = new byte[] { 127, 0, 0, 1 };
        //InetAddress addr = InetAddress.getByAddress(ipAddr);
-
+/*
        try {
     	   System.out.println("\n PACKET WILL BE LOST \n");
     	   DatagramSocket lostSocket = new DatagramSocket();
@@ -416,12 +471,13 @@ public class Sim {
 		// TODO Auto-generated catch block
     	   e.printStackTrace();
        }
-       
+       */
   	}// end lost
 
    	public static void function() {
    		cmd = 0;
    		cmd2 = 0;
+   		cor = -1;
 		re = new Scanner(System.in);
 		blockNum = -1;
 
@@ -429,9 +485,9 @@ public class Sim {
 		while(true) {
 			try {
 				System.out.print("***NEW SIM*** \n");
-				System.out.print("[0]Normal  [1]Duplicate  [2]Delay  [3]Lost: ");
+				System.out.print("[0]Normal  [1]Duplicate  [2]Delay  [3]Lost  [4]Corrupt: ");
 				cmd = Integer.parseInt(re.nextLine());
-				if (cmd >= 0 && cmd <= 3) break ;//If valid command, move on
+				if (cmd >= 0 && cmd <= 4) break ;//If valid command, move on
 			} catch (NumberFormatException e) {
 				System.out.println("Please enter a valid option.");
 			}
@@ -458,7 +514,7 @@ public class Sim {
 
 		   while(true) {
 				try {
-					if(cmd==3){
+					if(cmd==3 || cmd == 4){
 						// User wants lost
 						break;
 					}
@@ -476,7 +532,18 @@ public class Sim {
 					System.out.println("Please enter a valid option");
 				}
 			}// end while
-			
+		   
+		   if(cmd== 4){
+			   while(true) {
+					try {
+						System.out.print("[0]firstOpCode [1]port  [2]blockNum: ");
+						cor = Integer.parseInt(re.nextLine());
+						if (cor >= 0 && cor <= 2) break ;//If valid command, move on
+					} catch(NumberFormatException e) {
+						System.out.println("Please enter a valid option");
+					}
+				}// end while
+			}
       	}
    		// Choose to have quiet or verbose
  		while (true) {
@@ -486,11 +553,29 @@ public class Sim {
  				if (cmd2 == 1) {
  					toPrint = false;
  					break;
- 				} else {
+ 				} else if ( cmd2 == 2){
  					toPrint = true;
  					break;
+ 				} else {
+ 					System.out.println("reenter");
  				}
  			} catch (NumberFormatException e) {
+ 				System.out.println("Please enter a valid option");
+ 			}
+ 		}
+ 		
+		// Let user pick IP address of the server
+ 		while (true) {
+ 			try {
+ 				System.out.print("Server IP address : ");
+ 				IPString = re.nextLine();
+ 				if(IPString != "") {
+ 					break;
+ 				}
+ 				else {
+ 					serverIP = InetAddress.getLocalHost();
+ 				}
+ 			} catch (Exception e) {
  				System.out.println("Please enter a valid option");
  			}
  		}
