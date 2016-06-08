@@ -61,7 +61,7 @@ Normal <br>
 - [x] 512 bytes 
 - [x] 132,000 bytes
 
-Duplicate <b>DOESNT SEND ACK BACK AT THE END</b><br>
+Duplicate <br>
 - [x] WRQ
 - [x] Single block, DATA
 - [x] Single block, ACK
