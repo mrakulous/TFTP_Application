@@ -11,7 +11,7 @@ public class TFTPServerThread implements Runnable
 	private static final int DATA_PACKET = 3;
 	private static final int ACK_PACKET = 4;
 	
-	private static final int RETRANSMIT_TIME = 10000;
+	private static final int RETRANSMIT_TIME = 5000;
 	
 	private DatagramPacket receivedPacket, sendPacket;
 	private DatagramSocket Socket;
@@ -197,7 +197,7 @@ public class TFTPServerThread implements Runnable
 								Socket.setSoTimeout(RETRANSMIT_TIME);
 								Socket.receive(receivePacket);
 								
-								/*if(receivePacket.getPort() != portt){
+								if(receivePacket.getPort() != portt){
 									byte[] err5 = new byte[TOTAL_SIZE];
 									err5[0] = 0;
 									err5[1] = 5;
@@ -236,7 +236,7 @@ public class TFTPServerThread implements Runnable
 											System.out.println("Unknown Error");
 										}
 									}
-									*/
+									
 									if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] == 4
 											&& receivePacket.getData()[2] <= getAckCntL()+1 && receivePacket.getData()[3] <= getAckCntR()+1){
 										break;
@@ -271,7 +271,7 @@ public class TFTPServerThread implements Runnable
 									     }
 										 System.exit(1);
 									}
-								//}
+								}
 							} catch (SocketTimeoutException e) {
 								System.out.println("try"+i);
 								if(i == 5){
@@ -425,7 +425,7 @@ public class TFTPServerThread implements Runnable
 				
 				
 				
-					/*if(firstPort){
+					if(firstPort){
 						this.portt = receivedPacket.getPort();
 						firstPort = false;
 					}
@@ -475,7 +475,7 @@ public class TFTPServerThread implements Runnable
 						System.out.println("bitch"+ receivedPacket.getData()[2]);
 						System.out.println("bitch" +receivedPacket.getData()[3]);
 						
-						*/
+						
 						if(receivedPacket.getData()[0] == 0 && receivedPacket.getData()[1] == 3
 								&& receivedPacket.getData()[2] <= getAckCntL()+1 && receivedPacket.getData()[3] <= getAckCntR()+1){
 							
@@ -510,7 +510,7 @@ public class TFTPServerThread implements Runnable
 						     }
 							 System.exit(1);
 						}
-					//}
+					}
 				} catch (SocketTimeoutException e ) {
 					System.out.print("didnt receive");
 				}
