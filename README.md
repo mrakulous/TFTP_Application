@@ -55,8 +55,8 @@ Duplicate <b>DOESNT SEND ACK BACK AT THE END</b><br>
 - [x] WRQ
 - [x] Single block, DATA
 - [x] Single block, ACK
-- [x] Double block, DATA, 1  VERY BROKEN
-- [ ] <b> Double block, ACK, 1 </b>
+- [x] Double block, DATA, 1
+- [x] Double block, ACK, 1
 
 Delay <br>
 - [x] WRQ
