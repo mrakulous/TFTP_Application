@@ -279,7 +279,7 @@ public class TFTPServerThread implements Runnable
 										}
 									}
 									
-									if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] < 0 && receivePacket.getData()[1] > 6
+									if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] > 0 && receivePacket.getData()[1] < 6
 											&& receivePacket.getData()[2] <= getAckCntL()+1 && receivePacket.getData()[3] <= getAckCntR()+1){
 										break;
 									} else {
@@ -529,7 +529,7 @@ public class TFTPServerThread implements Runnable
 						System.out.println("bitch" +receivedPacket.getData()[3]);
 						
 						
-						if(receivedPacket.getData()[0] == 0 && receivedPacket.getData()[1] < 0 && receivedPacket.getData()[1] > 6
+						if(receivedPacket.getData()[0] == 0 && receivedPacket.getData()[1] > 0 && receivedPacket.getData()[1] < 6
 								&& receivedPacket.getData()[2] <= getAckCntL()+1 && receivedPacket.getData()[3] <= getAckCntR()+1){
 							
 						} else {
