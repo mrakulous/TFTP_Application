@@ -32,6 +32,7 @@ public class TFTPClient {
 	private DatagramPacket sendPacket, receivePacket; // Packets
 	private DatagramSocket sendReceiveSocket; // Sockets
 	private Byte ackCntL, ackCntR; // ACK counter
+	private String fName;
 
 	public TFTPClient() {
 		try {
@@ -120,8 +121,8 @@ public class TFTPClient {
 		while (true) {
 			try {
 				System.out.print("Enter filename to " + req.toString() + " (\"q\" to Quit): ");
-				filename = re.nextLine();
-				if (filename.equals(QUIT)) {
+				fName = re.nextLine();
+				if (fName.equals(QUIT)) {
 					shutDown();
 				}
 				if(req.equals(Request.WRITE))
@@ -135,11 +136,13 @@ public class TFTPClient {
 				
 				// workingDir = System.getProperty("user.dir");
 				// filepath = workingDir + "\\" + filename;
+				 if(req.equals(Request.WRITE)){
+					 File input = new File(fName);
+					 Scanner read = new Scanner(input); // Used to verify if the file is valid
+				 }
 				
-				File input = new File(filename);
-				Scanner read = new Scanner(input); // Used to verify if the file is valid
 				
-				fullPath = filePath + "\\" + filename;
+				fullPath = filePath + "\\" + fName;
 				break;
 			} catch (FileNotFoundException e) {
 				System.out.println("File does not exist.");
@@ -164,11 +167,11 @@ public class TFTPClient {
 			}
 			System.out.println("Invalid input.");
 		}
-		run(fullPath, mode, req);
+		run(fullPath, mode, fName, req);
 		System.out.println("*** Transfer Complete ***\n");
 	}
 
-	public void run(String filepath, String mode, Request req) {
+	public void run(String fullPath, String mode, String fName, Request req) {
 		byte[] msg = new byte[TOTAL_SIZE]; // Initialize byte array msg to 516
 		msg[0] = 0;
 
@@ -179,7 +182,7 @@ public class TFTPClient {
 		}
 
 		int index = 2;
-		byte[] filename = filepath.getBytes();
+		byte[] filename = fullPath.getBytes();
 		System.arraycopy(filename, 0, msg, index, filename.length);
 		index = index + filename.length;
 		msg[index] = 0;
@@ -228,16 +231,16 @@ public class TFTPClient {
 		}
 
 		if (req == Request.READ) {
-			read(filepath);
+			read(fName);
 		} else if (req == Request.WRITE) {
-			write(filepath);
+			write(fName);
 		}
 	}
 
-	public void read(String filepath) {
+	public void read(String filename) {
 		try {
 			// Create the buffered output stream and the output file
-			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(filepath));
+			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(filename));
 			for (;;) {
 				int len;
 				byte[] msg = new byte[TOTAL_SIZE];
@@ -305,7 +308,7 @@ public class TFTPClient {
 								}
 							}
 							
-							if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] < 0 && receivePacket.getData()[1] > 6
+							if(receivePacket.getData()[0] == 0 && receivePacket.getData()[1] > 0 && receivePacket.getData()[1] < 6
 									&& receivePacket.getData()[2] <= getAckCntL()+1 && receivePacket.getData()[3] <= getAckCntR()+1){
 								break;
 							} else {
